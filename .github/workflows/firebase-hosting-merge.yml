@@ -16,12 +16,18 @@ jobs:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
+          flutter-version: '3.41.4'
           channel: stable
+          cache: true
       - run: flutter pub get
-      # env.jsonはpubspec.yamlのアセットに必要（空のプレースホルダー）
-      # 実際の値は--dart-defineで注入するため、本番ビルドには秘密情報を含まない
-      - run: echo '{}' > env.json
-      - run: |
+      - name: Create env.json placeholder
+        run: echo '{}' > env.json
+      - name: Flutter analyze
+        run: flutter analyze --fatal-infos
+      - name: Flutter test
+        run: flutter test --exclude-tags=integration
+      - name: Flutter build web
+        run: |
           flutter build web \
             --dart-define=FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }} \
             --dart-define=FIREBASE_APP_ID=${{ secrets.FIREBASE_APP_ID }} \
