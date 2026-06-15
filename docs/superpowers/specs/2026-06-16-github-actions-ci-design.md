@@ -44,8 +44,9 @@ mainマージ時    →  firebase-hosting-merge.yml 品質チェック＋本番W
 | `format` | Format | `dart format --output=none --set-exit-if-changed .` | ✅ |
 | `analyze` | Analyze | `flutter analyze --fatal-infos` | ✅ |
 | `test` | Test | `flutter test --exclude-tags=integration` | ✅ |
-| `functions-test` | Functions Unit Tests | `cd functions && npm test` | ✅ |
-| `build` | Build | `flutter build apk --debug` | ✅ |
+| `build` | Build | `flutter build apk --debug`（dart-define シークレット注入） | ✅ |
+
+> **注:** `functions/package.json` にテストスクリプトが存在しないため `functions-test` ジョブは現時点では対象外。Cloud Functions のテストを追加した際に導入する。
 
 **共通設定:**
 - Flutter バージョン: `3.41.4`（`subosito/flutter-action@v2` の `flutter-version` で固定）
@@ -127,7 +128,6 @@ Settings → Branches → Add branch protection rule（対象: `main`）
    - Format
    - Analyze
    - Test
-   - Functions Unit Tests
    - Build
 
 ✅ Do not allow bypassing the above settings
