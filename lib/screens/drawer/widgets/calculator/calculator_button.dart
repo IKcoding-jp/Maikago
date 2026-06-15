@@ -114,9 +114,7 @@ class CalculatorActionButton extends StatelessWidget {
             side: isPrimary
                 ? null
                 : BorderSide(color: color.withValues(alpha: 0.3)),
-            elevation: isDark
-                ? (isPrimary ? 2 : 0)
-                : (isPrimary ? 3 : 1),
+            elevation: isDark ? (isPrimary ? 2 : 0) : (isPrimary ? 3 : 1),
           ),
           child: label != null
               ? FittedBox(

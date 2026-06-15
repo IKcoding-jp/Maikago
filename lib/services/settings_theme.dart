@@ -164,9 +164,8 @@ class SettingsTheme {
     final backgroundColor = _getBackgroundColor(selectedTheme);
 
     // 統一されたカード色の設定
-    final cardColor = selectedTheme == 'dark'
-        ? AppColors.darkCard
-        : Colors.white;
+    final cardColor =
+        selectedTheme == 'dark' ? AppColors.darkCard : Colors.white;
 
     // 統一されたボーダー色の設定
     final borderColor = selectedTheme == 'dark'

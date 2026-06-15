@@ -46,7 +46,8 @@ class ProductNameSummarizerService {
 
       return _fallbackSummarize(originalName);
     } on FirebaseFunctionsException catch (e) {
-      DebugService().logError('商品名要約Cloud Functionsエラー: [${e.code}] ${e.message}');
+      DebugService()
+          .logError('商品名要約Cloud Functionsエラー: [${e.code}] ${e.message}');
       return _fallbackSummarize(originalName);
     } catch (e) {
       DebugService().logError('商品名要約例外: $e');

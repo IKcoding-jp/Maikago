@@ -38,8 +38,8 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
   double get _fontSize => theme.textTheme.bodyMedium?.fontSize ?? 16.0;
 
   @override
-  Size get preferredSize =>
-      Size.fromHeight(MainScreenCalculations.calculateTabHeight(_fontSize) + 16);
+  Size get preferredSize => Size.fromHeight(
+      MainScreenCalculations.calculateTabHeight(_fontSize) + 16);
 
   @override
   Widget build(BuildContext context) {
@@ -54,10 +54,9 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
             scaffoldBgLuminance > 0.5 ? Brightness.dark : Brightness.light,
         statusBarBrightness:
             scaffoldBgLuminance > 0.5 ? Brightness.light : Brightness.dark,
-        systemNavigationBarIconBrightness:
-            theme.brightness == Brightness.dark
-                ? Brightness.light
-                : Brightness.dark,
+        systemNavigationBarIconBrightness: theme.brightness == Brightness.dark
+            ? Brightness.light
+            : Brightness.dark,
       ),
       title: Align(
         alignment: Alignment.centerLeft,
@@ -139,11 +138,9 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
     if (isSameGroupAsPrev && isSameGroupAsNext) {
       borderRadius = BorderRadius.zero;
     } else if (isSameGroupAsPrev) {
-      borderRadius =
-          const BorderRadius.horizontal(right: Radius.circular(20));
+      borderRadius = const BorderRadius.horizontal(right: Radius.circular(20));
     } else if (isSameGroupAsNext) {
-      borderRadius =
-          const BorderRadius.horizontal(left: Radius.circular(20));
+      borderRadius = const BorderRadius.horizontal(left: Radius.circular(20));
     } else {
       borderRadius = BorderRadius.circular(20);
     }
@@ -179,8 +176,7 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: _getTabColor(true, shop)
-                        .withValues(alpha: 0.30),
+                    color: _getTabColor(true, shop).withValues(alpha: 0.30),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -197,8 +193,7 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
                   color: isSelected
                       ? theme.colorScheme.onPrimary
                       : theme.subtextColor,
-                  fontWeight:
-                      isSelected ? FontWeight.bold : FontWeight.normal,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                   fontSize: _fontSize,
                 ),
                 overflow: TextOverflow.ellipsis,
@@ -221,7 +216,8 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
     }
 
     if (shop.sharedTabGroupId != null) {
-      return theme.colorScheme.primary.withValues(alpha: currentTheme == 'dark' ? 0.2 : 0.1);
+      return theme.colorScheme.primary
+          .withValues(alpha: currentTheme == 'dark' ? 0.2 : 0.1);
     }
 
     return theme.cardColor;

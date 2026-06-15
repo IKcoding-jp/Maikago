@@ -5,9 +5,8 @@ import 'package:flutter/material.dart';
 /// [error] が Exception の場合は 'Exception: ' プレフィックスを自動除去する。
 void showErrorSnackBar(BuildContext context, dynamic error,
     {Duration duration = const Duration(seconds: 3)}) {
-  final message = error is String
-      ? error
-      : error.toString().replaceAll('Exception: ', '');
+  final message =
+      error is String ? error : error.toString().replaceAll('Exception: ', '');
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
       content: Text(message),

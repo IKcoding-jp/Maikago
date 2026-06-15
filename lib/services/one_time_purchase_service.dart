@@ -1,9 +1,5 @@
 import 'package:flutter/foundation.dart'
-    show
-        kIsWeb,
-        ChangeNotifier,
-        defaultTargetPlatform,
-        TargetPlatform;
+    show kIsWeb, ChangeNotifier, defaultTargetPlatform, TargetPlatform;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -18,7 +14,6 @@ import 'package:maikago/services/purchase/purchase_persistence.dart';
 
 /// 非消耗型アプリ内課金管理サービス
 class OneTimePurchaseService extends ChangeNotifier {
-
   OneTimePurchaseService() {
     _trialManager = TrialManager(
       onStateChanged: _onTrialStateChanged,
@@ -65,7 +60,8 @@ class OneTimePurchaseService extends ChangeNotifier {
   // Getters
   bool get isPremiumUnlocked =>
       _debugPremiumOverride ??
-      ((_userPremiumStatus[_currentUserId] ?? false) || _trialManager.isTrialActive);
+      ((_userPremiumStatus[_currentUserId] ?? false) ||
+          _trialManager.isTrialActive);
   bool get isPremiumPurchased =>
       _userPremiumStatus[_currentUserId] ?? false; // 実際の購入状態（体験期間除く）
   bool get isLoading => _isLoading;

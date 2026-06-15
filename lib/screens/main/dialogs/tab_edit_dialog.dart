@@ -68,7 +68,8 @@ class _TabEditDialogState extends State<TabEditDialog> {
     final List<Shop> individualShops = [];
 
     for (final shop in otherShops) {
-      if (shop.sharedTabGroupId != null && shop.sharedTabGroupId != currentGroupId) {
+      if (shop.sharedTabGroupId != null &&
+          shop.sharedTabGroupId != currentGroupId) {
         // 自分のグループ以外の共有タブ → グループ単位で表示
         externalGroups.putIfAbsent(shop.sharedTabGroupId!, () => []).add(shop);
       } else {
@@ -160,7 +161,11 @@ class _TabEditDialogState extends State<TabEditDialog> {
               TextField(
                 controller: controller,
                 maxLength: 50,
-                buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
+                buildCounter: (context,
+                        {required currentLength,
+                        required isFocused,
+                        maxLength}) =>
+                    null,
                 decoration: CommonDialog.textFieldDecoration(
                   context,
                   labelText: 'タブ名',
@@ -228,7 +233,8 @@ class _TabEditDialogState extends State<TabEditDialog> {
           if (widget.shops.length > 1)
             CommonDialog.destructiveButton(context, onPressed: _handleDelete),
           CommonDialog.cancelButton(context),
-          CommonDialog.primaryButton(context, label: '保存', onPressed: _handleSave),
+          CommonDialog.primaryButton(context,
+              label: '保存', onPressed: _handleSave),
         ],
       ),
     );

@@ -141,7 +141,9 @@ class ItemListSection extends StatelessWidget {
           key: sectionKey,
           child: ClipRect(
             child: items.isEmpty
-                ? (isIncomplete ? const EmptyStateGuide() : const EmptyStatePurchasedGuide())
+                ? (isIncomplete
+                    ? const EmptyStateGuide()
+                    : const EmptyStatePurchasedGuide())
                 : ReorderableListView.builder(
                     padding: EdgeInsets.only(
                       left: 4,

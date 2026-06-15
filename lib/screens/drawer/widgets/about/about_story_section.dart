@@ -38,10 +38,7 @@ class AboutStorySection extends StatelessWidget {
                 Expanded(
                   child: Text(
                     '開発ストーリー',
-                    style: Theme.of(context)
-                        .textTheme
-                        .headlineMedium
-                        ?.copyWith(
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: Theme.of(
                             context,
@@ -111,10 +108,7 @@ class AboutStorySection extends StatelessWidget {
                     child: Text(
                       '「これ、一つにまとまってたら楽なのに…」\n'
                       'そう思ったのが、このアプリを作るきっかけでした。',
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyLarge
-                          ?.copyWith(
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                             color: Theme.of(
                               context,
                             ).colorScheme.onSurface,

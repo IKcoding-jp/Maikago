@@ -26,7 +26,6 @@ enum LimitReachedType {
 /// - アップグレード促進機能
 /// - 使用状況の可視化機能
 class FeatureAccessControl extends ChangeNotifier {
-
   late OneTimePurchaseService _purchaseService;
 
   // OCR月間使用制限

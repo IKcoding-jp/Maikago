@@ -68,5 +68,4 @@ class TabSorter {
 
     return sortedShops;
   }
-
 }

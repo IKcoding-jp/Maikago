@@ -96,7 +96,11 @@ class _RecipeImportBottomSheetState extends State<RecipeImportBottomSheet> {
                       Text(
                         'レシピを貼り付け',
                         style: TextStyle(
-                            fontSize: Theme.of(context).textTheme.headlineMedium?.fontSize, fontWeight: FontWeight.bold),
+                            fontSize: Theme.of(context)
+                                .textTheme
+                                .headlineMedium
+                                ?.fontSize,
+                            fontWeight: FontWeight.bold),
                       ),
                       IconButton(
                         icon: const Icon(Icons.close),
@@ -107,11 +111,17 @@ class _RecipeImportBottomSheetState extends State<RecipeImportBottomSheet> {
                   const SizedBox(height: 8),
                   Text(
                     'レシピのテキストを貼り付けると、材料を買い物リストにまとめます。',
-                    style: TextStyle(fontSize: Theme.of(context).textTheme.bodyMedium?.fontSize, color: Theme.of(context).colorScheme.outline),
+                    style: TextStyle(
+                        fontSize:
+                            Theme.of(context).textTheme.bodyMedium?.fontSize,
+                        color: Theme.of(context).colorScheme.outline),
                   ),
                   Text(
                     '材料と作り方が混在していても解析します。',
-                    style: TextStyle(fontSize: Theme.of(context).textTheme.bodySmall?.fontSize, color: Theme.of(context).colorScheme.outline),
+                    style: TextStyle(
+                        fontSize:
+                            Theme.of(context).textTheme.bodySmall?.fontSize,
+                        color: Theme.of(context).colorScheme.outline),
                   ),
                   const SizedBox(height: 16),
                   TextField(
@@ -136,7 +146,8 @@ class _RecipeImportBottomSheetState extends State<RecipeImportBottomSheet> {
                     child: Text(
                       '文字数: ${_controller.text.length} / 8,000（目安）',
                       style: TextStyle(
-                        fontSize: Theme.of(context).textTheme.bodySmall?.fontSize,
+                        fontSize:
+                            Theme.of(context).textTheme.bodySmall?.fontSize,
                         color: _controller.text.length > 8000
                             ? Theme.of(context).colorScheme.error
                             : Theme.of(context).colorScheme.outline,
@@ -165,7 +176,11 @@ class _RecipeImportBottomSheetState extends State<RecipeImportBottomSheet> {
                           )
                         : Text('解析開始',
                             style: TextStyle(
-                                fontSize: Theme.of(context).textTheme.bodyLarge?.fontSize, fontWeight: FontWeight.bold)),
+                                fontSize: Theme.of(context)
+                                    .textTheme
+                                    .bodyLarge
+                                    ?.fontSize,
+                                fontWeight: FontWeight.bold)),
                   ),
                   if (_isAnalyzing) ...[
                     const SizedBox(height: 16),
@@ -173,7 +188,12 @@ class _RecipeImportBottomSheetState extends State<RecipeImportBottomSheet> {
                       child: Text(
                         '解析中です...\n材料を整理しています（約数秒）',
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: Theme.of(context).textTheme.bodyMedium?.fontSize, color: Theme.of(context).colorScheme.outline),
+                        style: TextStyle(
+                            fontSize: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.fontSize,
+                            color: Theme.of(context).colorScheme.outline),
                       ),
                     ),
                   ],

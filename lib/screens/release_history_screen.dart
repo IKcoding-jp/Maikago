@@ -48,8 +48,7 @@ class _ReleaseHistoryScreenState extends State<ReleaseHistoryScreen> {
     }
   }
 
-  Color get _primaryColor =>
-      SettingsTheme.getPrimaryColor(widget.currentTheme);
+  Color get _primaryColor => SettingsTheme.getPrimaryColor(widget.currentTheme);
   Color get _onPrimaryColor =>
       SettingsTheme.getOnPrimaryColor(widget.currentTheme);
 

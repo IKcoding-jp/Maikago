@@ -88,8 +88,7 @@ GoRouter createAppRouter(AuthProvider authProvider) {
           final extra = state.extra as Map<String, dynamic>?;
           final tp = context.read<ThemeProvider>();
           return CalculatorScreen(
-            currentTheme:
-                extra?['currentTheme'] as String? ?? tp.selectedTheme,
+            currentTheme: extra?['currentTheme'] as String? ?? tp.selectedTheme,
             theme: extra?['theme'] as ThemeData? ?? Theme.of(context),
           );
         },
@@ -108,8 +107,7 @@ GoRouter createAppRouter(AuthProvider authProvider) {
           final extra = state.extra as Map<String, dynamic>?;
           final tp = context.read<ThemeProvider>();
           return ReleaseHistoryScreen(
-            currentTheme:
-                extra?['currentTheme'] as String? ?? tp.selectedTheme,
+            currentTheme: extra?['currentTheme'] as String? ?? tp.selectedTheme,
             currentFont: extra?['currentFont'] as String? ?? tp.selectedFont,
             currentFontSize:
                 extra?['currentFontSize'] as double? ?? tp.fontSize,
@@ -154,12 +152,10 @@ GoRouter createAppRouter(AuthProvider authProvider) {
           final extra = state.extra as Map<String, dynamic>?;
           final tp = context.read<ThemeProvider>();
           return ThemeSelectScreen(
-            currentTheme:
-                extra?['currentTheme'] as String? ?? tp.selectedTheme,
+            currentTheme: extra?['currentTheme'] as String? ?? tp.selectedTheme,
             theme: extra?['theme'] as ThemeData?,
-            onThemeChanged:
-                extra?['onThemeChanged'] as ValueChanged<String>? ??
-                    (theme) => tp.updateTheme(theme),
+            onThemeChanged: extra?['onThemeChanged'] as ValueChanged<String>? ??
+                (theme) => tp.updateTheme(theme),
           );
         },
       ),
@@ -197,8 +193,7 @@ GoRouter createAppRouter(AuthProvider authProvider) {
           final extra = state.extra as Map<String, dynamic>?;
           final tp = context.read<ThemeProvider>();
           return AdvancedSettingsScreen(
-            currentTheme:
-                extra?['currentTheme'] as String? ?? tp.selectedTheme,
+            currentTheme: extra?['currentTheme'] as String? ?? tp.selectedTheme,
             currentFont: extra?['currentFont'] as String? ?? tp.selectedFont,
             currentFontSize:
                 extra?['currentFontSize'] as double? ?? tp.fontSize,
@@ -212,8 +207,7 @@ GoRouter createAppRouter(AuthProvider authProvider) {
           final extra = state.extra as Map<String, dynamic>?;
           final tp = context.read<ThemeProvider>();
           return TermsOfServiceScreen(
-            currentTheme:
-                extra?['currentTheme'] as String? ?? tp.selectedTheme,
+            currentTheme: extra?['currentTheme'] as String? ?? tp.selectedTheme,
             currentFont: extra?['currentFont'] as String? ?? tp.selectedFont,
             currentFontSize:
                 extra?['currentFontSize'] as double? ?? tp.fontSize,
@@ -227,8 +221,7 @@ GoRouter createAppRouter(AuthProvider authProvider) {
           final extra = state.extra as Map<String, dynamic>?;
           final tp = context.read<ThemeProvider>();
           return PrivacyPolicyScreen(
-            currentTheme:
-                extra?['currentTheme'] as String? ?? tp.selectedTheme,
+            currentTheme: extra?['currentTheme'] as String? ?? tp.selectedTheme,
             currentFont: extra?['currentFont'] as String? ?? tp.selectedFont,
             currentFontSize:
                 extra?['currentFontSize'] as double? ?? tp.fontSize,
@@ -243,8 +236,7 @@ GoRouter createAppRouter(AuthProvider authProvider) {
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>?;
           return CameraScreen(
-            onImageCaptured:
-                extra?['onImageCaptured'] as void Function(File)?,
+            onImageCaptured: extra?['onImageCaptured'] as void Function(File)?,
           );
         },
       ),

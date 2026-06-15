@@ -59,7 +59,8 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.lock_outline, size: 64, color: colorScheme.outline),
+                    Icon(Icons.lock_outline,
+                        size: 64, color: colorScheme.outline),
                     const SizedBox(height: 16),
                     Text(
                       'ログインが必要です',
@@ -362,7 +363,8 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
                       const SizedBox(width: 8),
                       Text(
                         feature,
-                        style: TextStyle(fontSize: theme.textTheme.bodyMedium?.fontSize),
+                        style: TextStyle(
+                            fontSize: theme.textTheme.bodyMedium?.fontSize),
                       ),
                     ],
                   ),
@@ -378,9 +380,8 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
                     ? null
                     : () => _purchaseProduct(purchase, service),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: isPurchased
-                      ? colorScheme.primary
-                      : colorScheme.primary,
+                  backgroundColor:
+                      isPurchased ? colorScheme.primary : colorScheme.primary,
                   foregroundColor: colorScheme.onPrimary,
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(
@@ -484,7 +485,8 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
         ),
         actions: [
           CommonDialog.closeButton(context),
-          CommonDialog.primaryButton(context, label: '購入復元', onPressed: () async {
+          CommonDialog.primaryButton(context, label: '購入復元',
+              onPressed: () async {
             final service =
                 Provider.of<OneTimePurchaseService>(context, listen: false);
             await service.restorePurchases();

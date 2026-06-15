@@ -68,7 +68,8 @@ Future<String> _getTestAuthToken() async {
   }
 
   // 2. ファイルから既存トークンを取得
-  final tokenFile = File('${Directory.current.path}/test/integration/.firebase_token');
+  final tokenFile =
+      File('${Directory.current.path}/test/integration/.firebase_token');
   if (tokenFile.existsSync()) {
     final token = tokenFile.readAsStringSync().trim();
     if (token.isNotEmpty) {
@@ -79,16 +80,20 @@ Future<String> _getTestAuthToken() async {
   // 3. 環境変数からメール/パスワードで自動サインイン
   final envEmail = Platform.environment['FIREBASE_TEST_EMAIL'];
   final envPassword = Platform.environment['FIREBASE_TEST_PASSWORD'];
-  if (envEmail != null && envEmail.isNotEmpty &&
-      envPassword != null && envPassword.isNotEmpty) {
+  if (envEmail != null &&
+      envEmail.isNotEmpty &&
+      envPassword != null &&
+      envPassword.isNotEmpty) {
     print('環境変数の認証情報でサインイン中...');
     return _signInWithEmailPassword(envEmail, envPassword);
   }
 
   // 4. 認証情報ファイルから自動サインイン
-  final credFile = File('${Directory.current.path}/test/integration/.test_credentials');
+  final credFile =
+      File('${Directory.current.path}/test/integration/.test_credentials');
   if (credFile.existsSync()) {
-    final creds = json.decode(credFile.readAsStringSync()) as Map<String, dynamic>;
+    final creds =
+        json.decode(credFile.readAsStringSync()) as Map<String, dynamic>;
     final email = creds['email'] as String?;
     final password = creds['password'] as String?;
     if (email != null && password != null) {
@@ -204,30 +209,80 @@ void main() {
 
   final testCases = [
     // --- s-series (実際の店舗撮影) ---
-    OcrTestCase(imagePath: '$testImagesDir/s1_01.jpg', description: 's1_01 グリーンアスパラ'),
-    OcrTestCase(imagePath: '$testImagesDir/s1_02.jpg', description: 's1_02 新たまねぎ小箱'),
-    OcrTestCase(imagePath: '$testImagesDir/s1_04.jpg', description: 's1_04 ホットケーキミックス'),
-    OcrTestCase(imagePath: '$testImagesDir/s1_06.jpg', description: 's1_06 メンズソックス'),
-    OcrTestCase(imagePath: '$testImagesDir/s1_10.jpg', description: 's1_10 カップ麺'),
-    OcrTestCase(imagePath: '$testImagesDir/s2_01.jpg', description: 's2_01 ザンギ'),
-    OcrTestCase(imagePath: '$testImagesDir/s2_03.jpg', description: 's2_03 和牛ハンバーグ'),
+    OcrTestCase(
+        imagePath: '$testImagesDir/s1_01.jpg', description: 's1_01 グリーンアスパラ'),
+    OcrTestCase(
+        imagePath: '$testImagesDir/s1_02.jpg', description: 's1_02 新たまねぎ小箱'),
+    OcrTestCase(
+        imagePath: '$testImagesDir/s1_04.jpg', description: 's1_04 ホットケーキミックス'),
+    OcrTestCase(
+        imagePath: '$testImagesDir/s1_06.jpg', description: 's1_06 メンズソックス'),
+    OcrTestCase(
+        imagePath: '$testImagesDir/s1_10.jpg', description: 's1_10 カップ麺'),
+    OcrTestCase(
+        imagePath: '$testImagesDir/s2_01.jpg', description: 's2_01 ザンギ'),
+    OcrTestCase(
+        imagePath: '$testImagesDir/s2_03.jpg', description: 's2_03 和牛ハンバーグ'),
     OcrTestCase(imagePath: '$testImagesDir/s3_02.jpg', description: 's3_02 白波'),
-    OcrTestCase(imagePath: '$testImagesDir/s3_04.jpg', description: 's3_04 ほうれん草'),
+    OcrTestCase(
+        imagePath: '$testImagesDir/s3_04.jpg', description: 's3_04 ほうれん草'),
     // --- web-series (web収集画像、税込価格を期待値として設定) ---
-    OcrTestCase(imagePath: '$testImagesDir/web_01.jpg', description: 'web_01 ロアンヌバニラ', expectedPrice: 149),
-    OcrTestCase(imagePath: '$testImagesDir/web_02.jpg', description: 'web_02 はくさい', expectedPrice: 324),
-    OcrTestCase(imagePath: '$testImagesDir/web_03.jpg', description: 'web_03 麻婆豆腐の素', expectedPrice: 181),
-    OcrTestCase(imagePath: '$testImagesDir/web_04.jpg', description: 'web_04 手塩屋', expectedPrice: 170),
-    OcrTestCase(imagePath: '$testImagesDir/web_05.jpg', description: 'web_05 かき醤油のり', expectedPrice: 429),
-    OcrTestCase(imagePath: '$testImagesDir/web_06.jpg', description: 'web_06 昆布さば', expectedPrice: 430),
-    OcrTestCase(imagePath: '$testImagesDir/web_07.jpg', description: 'web_07 アンナマントマト&バジル', expectedPrice: 321),
-    OcrTestCase(imagePath: '$testImagesDir/web_08.jpg', description: 'web_08 BOSSカフェオレ', expectedPrice: 85),
-    OcrTestCase(imagePath: '$testImagesDir/web_09.jpg', description: 'web_09 やわらかパイ', expectedPrice: 138),
-    OcrTestCase(imagePath: '$testImagesDir/web_10.jpg', description: 'web_10 しあわせスフレロール', expectedPrice: 311),
-    OcrTestCase(imagePath: '$testImagesDir/web_11.jpg', description: 'web_11 コシヒカリ5kg', expectedPrice: 3580),
-    OcrTestCase(imagePath: '$testImagesDir/web_12.jpg', description: 'web_12 卵の花', expectedPrice: 96),
-    OcrTestCase(imagePath: '$testImagesDir/web_13.jpg', description: 'web_13 CookDo豚肉黒酢炒め', expectedPrice: 149),
-    OcrTestCase(imagePath: '$testImagesDir/web_14.jpg', description: 'web_14 バブナイトアロマ', expectedPrice: 429),
+    OcrTestCase(
+        imagePath: '$testImagesDir/web_01.jpg',
+        description: 'web_01 ロアンヌバニラ',
+        expectedPrice: 149),
+    OcrTestCase(
+        imagePath: '$testImagesDir/web_02.jpg',
+        description: 'web_02 はくさい',
+        expectedPrice: 324),
+    OcrTestCase(
+        imagePath: '$testImagesDir/web_03.jpg',
+        description: 'web_03 麻婆豆腐の素',
+        expectedPrice: 181),
+    OcrTestCase(
+        imagePath: '$testImagesDir/web_04.jpg',
+        description: 'web_04 手塩屋',
+        expectedPrice: 170),
+    OcrTestCase(
+        imagePath: '$testImagesDir/web_05.jpg',
+        description: 'web_05 かき醤油のり',
+        expectedPrice: 429),
+    OcrTestCase(
+        imagePath: '$testImagesDir/web_06.jpg',
+        description: 'web_06 昆布さば',
+        expectedPrice: 430),
+    OcrTestCase(
+        imagePath: '$testImagesDir/web_07.jpg',
+        description: 'web_07 アンナマントマト&バジル',
+        expectedPrice: 321),
+    OcrTestCase(
+        imagePath: '$testImagesDir/web_08.jpg',
+        description: 'web_08 BOSSカフェオレ',
+        expectedPrice: 85),
+    OcrTestCase(
+        imagePath: '$testImagesDir/web_09.jpg',
+        description: 'web_09 やわらかパイ',
+        expectedPrice: 138),
+    OcrTestCase(
+        imagePath: '$testImagesDir/web_10.jpg',
+        description: 'web_10 しあわせスフレロール',
+        expectedPrice: 311),
+    OcrTestCase(
+        imagePath: '$testImagesDir/web_11.jpg',
+        description: 'web_11 コシヒカリ5kg',
+        expectedPrice: 3580),
+    OcrTestCase(
+        imagePath: '$testImagesDir/web_12.jpg',
+        description: 'web_12 卵の花',
+        expectedPrice: 96),
+    OcrTestCase(
+        imagePath: '$testImagesDir/web_13.jpg',
+        description: 'web_13 CookDo豚肉黒酢炒め',
+        expectedPrice: 149),
+    OcrTestCase(
+        imagePath: '$testImagesDir/web_14.jpg',
+        description: 'web_14 バブナイトアロマ',
+        expectedPrice: 429),
   ];
 
   late String idToken;
@@ -283,8 +338,7 @@ void main() {
 
         // 期待値チェック（設定されている場合のみ）
         if (tc.expectedPrice != null && price != null) {
-          expect(price, equals(tc.expectedPrice),
-              reason: '価格が期待値と異なります');
+          expect(price, equals(tc.expectedPrice), reason: '価格が期待値と異なります');
         }
         if (tc.expectedName != null && name != null) {
           expect(name.contains(tc.expectedName!), isTrue,

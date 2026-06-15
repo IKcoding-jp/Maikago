@@ -162,7 +162,8 @@ class _UpdateConfirmDialogState extends State<UpdateConfirmDialog> {
         ],
       ),
       actions: [
-        CommonDialog.cancelButton(context, onPressed: _isProcessing ? null : () => context.pop(false)),
+        CommonDialog.cancelButton(context,
+            onPressed: _isProcessing ? null : () => context.pop(false)),
         CommonDialog.primaryButton(
           context,
           label: '更新する',

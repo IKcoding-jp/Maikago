@@ -95,7 +95,8 @@ class PremiumTrustSection extends StatelessWidget {
                       Text(
                         '安心してご購入ください',
                         style: TextStyle(
-                          fontSize: Theme.of(context).textTheme.bodyLarge?.fontSize,
+                          fontSize:
+                              Theme.of(context).textTheme.bodyLarge?.fontSize,
                           fontWeight: FontWeight.bold,
                           color: Theme.of(context).colorScheme.onSurface,
                         ),
@@ -104,7 +105,8 @@ class PremiumTrustSection extends StatelessWidget {
                       Text(
                         '買い切り型なので、月額料金は一切かかりません\n一度のお支払いでずっとご利用いただけます',
                         style: TextStyle(
-                          fontSize: Theme.of(context).textTheme.bodyMedium?.fontSize,
+                          fontSize:
+                              Theme.of(context).textTheme.bodyMedium?.fontSize,
                           color: Theme.of(context).subtextColor,
                           height: 1.3,
                         ),

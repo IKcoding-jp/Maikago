@@ -90,8 +90,7 @@ class _VersionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SettingsCard(
-      backgroundColor:
-          SettingsTheme.getCardColor(settingsState.selectedTheme),
+      backgroundColor: SettingsTheme.getCardColor(settingsState.selectedTheme),
       child: Column(
         children: [
           SettingsListItem(
@@ -100,8 +99,7 @@ class _VersionCard extends StatelessWidget {
             leadingIcon: Icons.info_outline_rounded,
             backgroundColor:
                 SettingsTheme.getPrimaryColor(settingsState.selectedTheme),
-            textColor:
-                SettingsTheme.getTextColor(settingsState.selectedTheme),
+            textColor: SettingsTheme.getTextColor(settingsState.selectedTheme),
             iconColor:
                 SettingsTheme.getOnPrimaryColor(settingsState.selectedTheme),
             onTap: onCheckForUpdates,
@@ -231,18 +229,15 @@ class _TermsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SettingsCard(
-      backgroundColor:
-          SettingsTheme.getCardColor(settingsState.selectedTheme),
+      backgroundColor: SettingsTheme.getCardColor(settingsState.selectedTheme),
       child: SettingsListItem(
         title: '利用規約',
         subtitle: 'アプリの利用に関する規約',
         leadingIcon: Icons.description_rounded,
         backgroundColor:
             SettingsTheme.getPrimaryColor(settingsState.selectedTheme),
-        textColor:
-            SettingsTheme.getTextColor(settingsState.selectedTheme),
-        iconColor:
-            SettingsTheme.getOnPrimaryColor(settingsState.selectedTheme),
+        textColor: SettingsTheme.getTextColor(settingsState.selectedTheme),
+        iconColor: SettingsTheme.getOnPrimaryColor(settingsState.selectedTheme),
         onTap: () {
           context.push('/settings/terms', extra: {
             'currentTheme': settingsState.selectedTheme,
@@ -269,18 +264,15 @@ class _PrivacyCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SettingsCard(
-      backgroundColor:
-          SettingsTheme.getCardColor(settingsState.selectedTheme),
+      backgroundColor: SettingsTheme.getCardColor(settingsState.selectedTheme),
       child: SettingsListItem(
         title: 'プライバシーポリシー',
         subtitle: '個人情報の取り扱い',
         leadingIcon: Icons.privacy_tip_rounded,
         backgroundColor:
             SettingsTheme.getPrimaryColor(settingsState.selectedTheme),
-        textColor:
-            SettingsTheme.getTextColor(settingsState.selectedTheme),
-        iconColor:
-            SettingsTheme.getOnPrimaryColor(settingsState.selectedTheme),
+        textColor: SettingsTheme.getTextColor(settingsState.selectedTheme),
+        iconColor: SettingsTheme.getOnPrimaryColor(settingsState.selectedTheme),
         onTap: () {
           context.push('/settings/privacy', extra: {
             'currentTheme': settingsState.selectedTheme,

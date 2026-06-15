@@ -6,7 +6,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/services.dart';
 import 'package:maikago/env.dart';
-import 'package:maikago/services/web_utils.dart' if (dart.library.html) 'web_utils_web.dart';
+import 'package:maikago/services/web_utils.dart'
+    if (dart.library.html) 'web_utils_web.dart';
 import 'package:maikago/services/debug_service.dart';
 
 /// 認証関連のユースケースを集約したサービス。
@@ -34,7 +35,8 @@ class AuthService {
 
     final serverClientId = Env.googleWebClientId;
     if (serverClientId.isEmpty) {
-      DebugService().logWarning('GOOGLE_WEB_CLIENT_ID が未設定です。idTokenが取得できない可能性があります。');
+      DebugService()
+          .logWarning('GOOGLE_WEB_CLIENT_ID が未設定です。idTokenが取得できない可能性があります。');
     }
 
     await _googleSignIn.initialize(
@@ -111,7 +113,8 @@ class AuthService {
         await _googleSignIn.signOut();
 
         // Google Sign-Inを開始（v7: authenticate() — 失敗時はGoogleSignInExceptionをスロー）
-        final GoogleSignInAccount googleUser = await _googleSignIn.authenticate();
+        final GoogleSignInAccount googleUser =
+            await _googleSignIn.authenticate();
 
         // 認証情報を取得（v7: authenticationはsyncプロパティ）
         final googleAuth = googleUser.authentication;
@@ -171,7 +174,8 @@ class AuthService {
             return 'unknown_error';
         }
       } else if (e is FirebaseAuthException) {
-        DebugService().logWarning('Firebase認証例外: code=${e.code}, message=${e.message}');
+        DebugService()
+            .logWarning('Firebase認証例外: code=${e.code}, message=${e.message}');
         return e.code;
       }
       return 'unknown_error';

@@ -73,8 +73,7 @@ void main() {
       final item = createSampleItem(id: 'existing_id', name: '元の名前');
       await repository.addItem(item);
 
-      final updatedItem =
-          createSampleItem(id: 'existing_id', name: '更新された名前');
+      final updatedItem = createSampleItem(id: 'existing_id', name: '更新された名前');
       await repository.addItem(updatedItem);
 
       expect(cacheManager.items.length, 1);
@@ -85,8 +84,7 @@ void main() {
       final shop = createSampleShop(id: '0', name: 'デフォルト');
       cacheManager.addShopToCache(shop);
 
-      final item =
-          createSampleItem(id: '', name: 'テスト商品', shopId: '0');
+      final item = createSampleItem(id: '', name: 'テスト商品', shopId: '0');
 
       await repository.addItem(item);
 
@@ -182,8 +180,7 @@ void main() {
         isAnonymous: anyNamed('isAnonymous'),
       )).thenThrow(Exception('Firebase error'));
 
-      final item =
-          createSampleItem(id: '', name: 'テスト', shopId: '0');
+      final item = createSampleItem(id: '', name: 'テスト', shopId: '0');
 
       try {
         await repository.addItem(item);
@@ -289,9 +286,8 @@ void main() {
         cacheManager.addItemToCache(item);
       }
 
-      final updatedItems = items
-          .map((item) => item.copyWith(price: 999))
-          .toList();
+      final updatedItems =
+          items.map((item) => item.copyWith(price: 999)).toList();
       final pendingShopUpdates = <String, DateTime>{};
 
       await repository.updateItemsBatch(
@@ -329,9 +325,8 @@ void main() {
       final shop = createSampleShop(id: '0', name: 'デフォルト', items: items);
       cacheManager.addShopToCache(shop);
 
-      final updatedItems = items
-          .map((item) => item.copyWith(price: 500))
-          .toList();
+      final updatedItems =
+          items.map((item) => item.copyWith(price: 500)).toList();
       final pendingShopUpdates = <String, DateTime>{};
 
       await repository.updateItemsBatch(
@@ -352,7 +347,8 @@ void main() {
       final shop = createSampleShop(id: '0', name: 'デフォルト', items: items);
       cacheManager.addShopToCache(shop);
 
-      final updatedItems = items.map((item) => item.copyWith(price: 500)).toList();
+      final updatedItems =
+          items.map((item) => item.copyWith(price: 500)).toList();
       final pendingShopUpdates = <String, DateTime>{};
 
       await repository.updateItemsBatch(

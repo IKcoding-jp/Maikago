@@ -96,18 +96,23 @@ class RecipeParserService {
 
   /// レシピテキストから材料を抽出する（Cloud Functions経由）
   /// 成功時は (RecipeParseResult, null)、失敗時は (null, RecipeParseError) を返す
-  Future<(RecipeParseResult?, RecipeParseError?)> parseRecipe(String recipeText) async {
+  Future<(RecipeParseResult?, RecipeParseError?)> parseRecipe(
+      String recipeText) async {
     // テキスト長制限チェック
     if (recipeText.length > maxRecipeTextLength) {
       DebugService().log('❌ レシピテキストが長すぎます（${recipeText.length}文字）');
-      return (null, RecipeParseError(type: RecipeParseErrorType.textTooLong, message: '${recipeText.length}文字'));
+      return (
+        null,
+        RecipeParseError(
+            type: RecipeParseErrorType.textTooLong,
+            message: '${recipeText.length}文字')
+      );
     }
 
     try {
       DebugService().log('🤖 レシピ解析開始（Cloud Functions経由）...');
 
-      final callable =
-          FirebaseFunctions.instance.httpsCallable('parseRecipe');
+      final callable = FirebaseFunctions.instance.httpsCallable('parseRecipe');
       final response = await callable.call<Map<String, dynamic>>({
         'recipeText': recipeText,
       }).timeout(const Duration(seconds: 30));
@@ -123,31 +128,63 @@ class RecipeParserService {
 
         if (ingredients.isEmpty) {
           DebugService().log('❌ レシピ解析: 材料が0件');
-          return (null, RecipeParseError(type: RecipeParseErrorType.emptyResult, message: '材料0件'));
+          return (
+            null,
+            RecipeParseError(
+                type: RecipeParseErrorType.emptyResult, message: '材料0件')
+          );
         }
 
         DebugService().log('✅ レシピ解析成功: 「$title」 ${ingredients.length}件の材料を抽出');
-        return (RecipeParseResult(title: title, ingredients: ingredients), null);
+        return (
+          RecipeParseResult(title: title, ingredients: ingredients),
+          null
+        );
       } else {
         final error = data['error']?.toString() ?? '不明';
         DebugService().log('❌ レシピ解析失敗: $error');
-        return (null, RecipeParseError(type: RecipeParseErrorType.serverError, message: error));
+        return (
+          null,
+          RecipeParseError(
+              type: RecipeParseErrorType.serverError, message: error)
+        );
       }
     } on FirebaseFunctionsException catch (e) {
       DebugService().log('❌ レシピ解析エラー: [${e.code}] ${e.message}');
       if (e.code == 'unauthenticated') {
-        return (null, RecipeParseError(type: RecipeParseErrorType.unauthenticated, message: e.message ?? ''));
+        return (
+          null,
+          RecipeParseError(
+              type: RecipeParseErrorType.unauthenticated,
+              message: e.message ?? '')
+        );
       }
       if (e.code == 'deadline-exceeded') {
-        return (null, RecipeParseError(type: RecipeParseErrorType.timeout, message: e.message ?? ''));
+        return (
+          null,
+          RecipeParseError(
+              type: RecipeParseErrorType.timeout, message: e.message ?? '')
+        );
       }
-      return (null, RecipeParseError(type: RecipeParseErrorType.serverError, message: '[${e.code}] ${e.message}'));
+      return (
+        null,
+        RecipeParseError(
+            type: RecipeParseErrorType.serverError,
+            message: '[${e.code}] ${e.message}')
+      );
     } on TimeoutException {
       DebugService().log('❌ レシピ解析: クライアントタイムアウト（30秒）');
-      return (null, RecipeParseError(type: RecipeParseErrorType.timeout, message: 'クライアント30秒タイムアウト'));
+      return (
+        null,
+        RecipeParseError(
+            type: RecipeParseErrorType.timeout, message: 'クライアント30秒タイムアウト')
+      );
     } catch (e) {
       DebugService().log('❌ レシピ解析例外: $e');
-      return (null, RecipeParseError(type: RecipeParseErrorType.unknown, message: '$e'));
+      return (
+        null,
+        RecipeParseError(type: RecipeParseErrorType.unknown, message: '$e')
+      );
     }
   }
 
@@ -157,8 +194,8 @@ class RecipeParserService {
     if (name1.trim() == name2.trim()) return true;
 
     try {
-      final callable = FirebaseFunctions.instance
-          .httpsCallable('checkIngredientSimilarity');
+      final callable =
+          FirebaseFunctions.instance.httpsCallable('checkIngredientSimilarity');
       final response = await callable.call<Map<String, dynamic>>({
         'name1': name1,
         'name2': name2,

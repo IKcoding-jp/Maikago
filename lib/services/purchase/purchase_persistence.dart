@@ -100,8 +100,7 @@ class PurchasePersistence {
       final isTrialActive = prefs.getBool('trial_active') ?? false;
       final trialStartTimestamp = prefs.getInt('trial_start_timestamp');
       final trialEndTimestamp = prefs.getInt('trial_end_timestamp');
-      final isTrialEverStarted =
-          prefs.getBool('trial_ever_started') ?? false;
+      final isTrialEverStarted = prefs.getBool('trial_ever_started') ?? false;
 
       DateTime? trialStartDate;
       DateTime? trialEndDate;

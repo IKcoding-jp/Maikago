@@ -65,12 +65,10 @@ class SettingsPersistence {
       _save(_fontSizeKey, fontSize, 'saveFontSize');
 
   /// テーマを読み込み
-  static Future<String> loadTheme() =>
-      _load(_themeKey, 'pink', 'loadTheme');
+  static Future<String> loadTheme() => _load(_themeKey, 'pink', 'loadTheme');
 
   /// フォントを読み込み
-  static Future<String> loadFont() =>
-      _load(_fontKey, 'nunito', 'loadFont');
+  static Future<String> loadFont() => _load(_fontKey, 'nunito', 'loadFont');
 
   /// フォントサイズを読み込み
   static Future<double> loadFontSize() =>
@@ -348,7 +346,8 @@ class SettingsPersistence {
   }
 
   /// カメラガイドラインを「二度と表示しない」として設定
-  static Future<void> setCameraGuidelinesDontShowAgain() =>
-      _save(_cameraGuidelinesDontShowAgainKey, true,
-          'setCameraGuidelinesDontShowAgain');
+  static Future<void> setCameraGuidelinesDontShowAgain() => _save(
+      _cameraGuidelinesDontShowAgainKey,
+      true,
+      'setCameraGuidelinesDontShowAgain');
 }

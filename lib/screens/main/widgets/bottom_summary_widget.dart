@@ -199,8 +199,7 @@ class _BottomSummaryWidgetState extends State<BottomSummaryWidget> {
 
     // キャッシュが初期化されていて、現在のショップに対応するキャッシュの場合はキャッシュを使用
     // タブ切り替え時はキャッシュ値を維持してちらつきを防止
-    final bool useCache =
-        _cacheInitialized && _currentShopId == widget.shop.id;
+    final bool useCache = _cacheInitialized && _currentShopId == widget.shop.id;
 
     final total = useCache ? (_cachedTotal ?? instantTotal) : instantTotal;
     final budget = useCache ? _cachedBudget : widget.shop.budget;

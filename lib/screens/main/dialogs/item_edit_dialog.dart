@@ -150,7 +150,11 @@ class _ItemEditDialogState extends State<ItemEditDialog> {
               TextField(
                 controller: nameController,
                 maxLength: 100,
-                buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
+                buildCounter: (context,
+                        {required currentLength,
+                        required isFocused,
+                        maxLength}) =>
+                    null,
                 decoration: CommonDialog.textFieldDecoration(
                   context,
                   labelText: 'アイテム名',
@@ -163,7 +167,11 @@ class _ItemEditDialogState extends State<ItemEditDialog> {
                 controller: qtyController,
                 keyboardType: TextInputType.number,
                 maxLength: 4,
-                buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
+                buildCounter: (context,
+                        {required currentLength,
+                        required isFocused,
+                        maxLength}) =>
+                    null,
                 decoration: CommonDialog.textFieldDecoration(
                   context,
                   labelText: '個数',
@@ -181,7 +189,11 @@ class _ItemEditDialogState extends State<ItemEditDialog> {
                 controller: priceController,
                 keyboardType: TextInputType.number,
                 maxLength: 8,
-                buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
+                buildCounter: (context,
+                        {required currentLength,
+                        required isFocused,
+                        maxLength}) =>
+                    null,
                 decoration: CommonDialog.textFieldDecoration(
                   context,
                   labelText: '単価 (円)',
@@ -200,7 +212,11 @@ class _ItemEditDialogState extends State<ItemEditDialog> {
                 controller: discountController,
                 keyboardType: TextInputType.number,
                 maxLength: 3,
-                buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
+                buildCounter: (context,
+                        {required currentLength,
+                        required isFocused,
+                        maxLength}) =>
+                    null,
                 decoration: CommonDialog.textFieldDecoration(
                   context,
                   labelText: '割引率 (%)',
@@ -239,7 +255,8 @@ class _ItemEditDialogState extends State<ItemEditDialog> {
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Theme.of(context).colorScheme.onSurface,
-                        fontSize: Theme.of(context).textTheme.bodyLarge?.fontSize,
+                        fontSize:
+                            Theme.of(context).textTheme.bodyLarge?.fontSize,
                       ),
                     ),
                   ],
@@ -251,7 +268,8 @@ class _ItemEditDialogState extends State<ItemEditDialog> {
       ),
       actions: [
         CommonDialog.cancelButton(context),
-        CommonDialog.primaryButton(context, label: '保存', onPressed: _handleSave),
+        CommonDialog.primaryButton(context,
+            label: '保存', onPressed: _handleSave),
       ],
     );
   }

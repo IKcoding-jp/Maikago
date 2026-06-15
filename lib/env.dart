@@ -63,8 +63,8 @@ class Env {
       _get(_dartDefineFirebaseApiKey, 'FIREBASE_API_KEY');
   static String get firebaseAppId =>
       _get(_dartDefineFirebaseAppId, 'FIREBASE_APP_ID');
-  static String get firebaseMessagingSenderId =>
-      _get(_dartDefineFirebaseMessagingSenderId, 'FIREBASE_MESSAGING_SENDER_ID');
+  static String get firebaseMessagingSenderId => _get(
+      _dartDefineFirebaseMessagingSenderId, 'FIREBASE_MESSAGING_SENDER_ID');
   static String get firebaseProjectId =>
       _get(_dartDefineFirebaseProjectId, 'FIREBASE_PROJECT_ID');
   static String get firebaseAuthDomain =>

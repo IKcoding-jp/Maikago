@@ -121,7 +121,8 @@ class PremiumFeaturesSection extends StatelessWidget {
               Text(
                 title,
                 style: TextStyle(
-                  fontSize: Theme.of(context).textTheme.headlineMedium?.fontSize,
+                  fontSize:
+                      Theme.of(context).textTheme.headlineMedium?.fontSize,
                   fontWeight: FontWeight.bold,
                   color: Theme.of(context).colorScheme.onSurface,
                 ),

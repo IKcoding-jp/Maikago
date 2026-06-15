@@ -67,7 +67,8 @@ class _AdvancedSettingsScreenState extends State<AdvancedSettingsScreen> {
   }
 
   /// アプリバーを構築
-  PreferredSizeWidget _buildAppBar(SettingsState settingsState, ThemeData currentTheme) {
+  PreferredSizeWidget _buildAppBar(
+      SettingsState settingsState, ThemeData currentTheme) {
     return AppBar(
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
@@ -77,7 +78,8 @@ class _AdvancedSettingsScreenState extends State<AdvancedSettingsScreen> {
         '詳細設定',
         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
               fontWeight: FontWeight.bold,
-              color: SettingsTheme.getOnPrimaryColor(settingsState.selectedTheme),
+              color:
+                  SettingsTheme.getOnPrimaryColor(settingsState.selectedTheme),
             ),
       ),
       backgroundColor: currentTheme.colorScheme.primary,
@@ -180,7 +182,8 @@ class _AdvancedSettingsScreenState extends State<AdvancedSettingsScreen> {
   }
 
   /// 入力セクションを構築
-  Widget _buildInputSection(SettingsState settingsState, ThemeData currentTheme) {
+  Widget _buildInputSection(
+      SettingsState settingsState, ThemeData currentTheme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -202,7 +205,8 @@ class _AdvancedSettingsScreenState extends State<AdvancedSettingsScreen> {
   }
 
   /// 入力・操作設定セクションを構築
-  Widget _buildInputOperationSection(SettingsState settingsState, ThemeData currentTheme) {
+  Widget _buildInputOperationSection(
+      SettingsState settingsState, ThemeData currentTheme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -217,7 +221,8 @@ class _AdvancedSettingsScreenState extends State<AdvancedSettingsScreen> {
   }
 
   /// 表示設定セクションを構築
-  Widget _buildDisplaySection(SettingsState settingsState, ThemeData currentTheme) {
+  Widget _buildDisplaySection(
+      SettingsState settingsState, ThemeData currentTheme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -233,7 +238,8 @@ class _AdvancedSettingsScreenState extends State<AdvancedSettingsScreen> {
   }
 
   /// 自動完了カードを構築
-  Widget _buildAutoCompleteCard(SettingsState settingsState, ThemeData currentTheme) {
+  Widget _buildAutoCompleteCard(
+      SettingsState settingsState, ThemeData currentTheme) {
     return FutureBuilder<bool>(
       future: _autoCompleteFuture,
       builder: (context, snapshot) {
@@ -255,7 +261,8 @@ class _AdvancedSettingsScreenState extends State<AdvancedSettingsScreen> {
             subtitle: Text(
               '金額を入力したときに、自動で購入済みに移動する',
               style: TextStyle(
-                color: SettingsTheme.getSubtextColor(settingsState.selectedTheme),
+                color:
+                    SettingsTheme.getSubtextColor(settingsState.selectedTheme),
               ),
             ),
             value: isEnabled,
@@ -287,7 +294,8 @@ class _AdvancedSettingsScreenState extends State<AdvancedSettingsScreen> {
   }
 
   /// 取り消し線カードを構築
-  Widget _buildStrikethroughCard(SettingsState settingsState, ThemeData currentTheme) {
+  Widget _buildStrikethroughCard(
+      SettingsState settingsState, ThemeData currentTheme) {
     return FutureBuilder<bool>(
       future: _strikethroughFuture,
       builder: (context, snapshot) {
@@ -309,7 +317,8 @@ class _AdvancedSettingsScreenState extends State<AdvancedSettingsScreen> {
             subtitle: Text(
               '購入済みの商品名に取り消し線を表示する',
               style: TextStyle(
-                color: SettingsTheme.getSubtextColor(settingsState.selectedTheme),
+                color:
+                    SettingsTheme.getSubtextColor(settingsState.selectedTheme),
               ),
             ),
             value: isEnabled,
@@ -331,7 +340,8 @@ class _AdvancedSettingsScreenState extends State<AdvancedSettingsScreen> {
   }
 
   /// コーチマークリセットカードを構築
-  Widget _buildCoachMarkResetCard(SettingsState settingsState, ThemeData currentTheme) {
+  Widget _buildCoachMarkResetCard(
+      SettingsState settingsState, ThemeData currentTheme) {
     return _buildSettingsCard(
       backgroundColor: currentTheme.cardColor,
       margin: const EdgeInsets.only(bottom: 14),
@@ -378,7 +388,8 @@ class _AdvancedSettingsScreenState extends State<AdvancedSettingsScreen> {
   }
 
   /// デバッグセクションを構築
-  Widget _buildDebugSection(SettingsState settingsState, ThemeData currentTheme) {
+  Widget _buildDebugSection(
+      SettingsState settingsState, ThemeData currentTheme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -393,7 +404,8 @@ class _AdvancedSettingsScreenState extends State<AdvancedSettingsScreen> {
   }
 
   /// ウェルカムダイアログデバッグカードを構築
-  Widget _buildWelcomeDialogDebugCard(SettingsState settingsState, ThemeData currentTheme) {
+  Widget _buildWelcomeDialogDebugCard(
+      SettingsState settingsState, ThemeData currentTheme) {
     return _buildSettingsCard(
       backgroundColor: currentTheme.cardColor,
       margin: const EdgeInsets.only(bottom: 14),

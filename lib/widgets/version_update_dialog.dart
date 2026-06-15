@@ -79,7 +79,8 @@ class VersionUpdateDialog extends StatelessWidget {
                         change.description,
                         style: TextStyle(
                           color: Theme.of(context).subtextColor,
-                          fontSize: Theme.of(context).textTheme.bodyMedium?.fontSize,
+                          fontSize:
+                              Theme.of(context).textTheme.bodyMedium?.fontSize,
                           height: 1.3,
                         ),
                       ),
@@ -92,7 +93,10 @@ class VersionUpdateDialog extends StatelessWidget {
             Text(
               '他 ${latestRelease.changes.length - 3} 件の変更があります',
               style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.5),
                 fontSize: Theme.of(context).textTheme.bodySmall?.fontSize,
                 fontStyle: FontStyle.italic,
               ),
@@ -139,7 +143,8 @@ class VersionUpdateDialog extends StatelessWidget {
       ),
       actions: [
         CommonDialog.closeButton(context, onPressed: onDismiss),
-        CommonDialog.primaryButton(context, label: '詳しく見る', onPressed: onViewDetails),
+        CommonDialog.primaryButton(context,
+            label: '詳しく見る', onPressed: onViewDetails),
       ],
     );
   }

@@ -185,7 +185,9 @@ class UpcomingFeaturesScreen extends StatelessWidget {
   Widget _buildFeatureCard(BuildContext context, Map<String, dynamic> feature) {
     // 開発状況に応じた色を決定
     final isInDevelopment = feature['status'] == '開発中';
-    final statusColor = isInDevelopment ? AppColors.statusInDevelopment : AppColors.statusPlanned;
+    final statusColor = isInDevelopment
+        ? AppColors.statusInDevelopment
+        : AppColors.statusPlanned;
     final iconColor = feature['iconColor'] as Color;
 
     return Card(
@@ -233,7 +235,8 @@ class UpcomingFeaturesScreen extends StatelessWidget {
                         child: Text(
                           feature['status'],
                           style: TextStyle(
-                            fontSize: Theme.of(context).textTheme.bodySmall?.fontSize,
+                            fontSize:
+                                Theme.of(context).textTheme.bodySmall?.fontSize,
                             fontWeight: FontWeight.bold,
                             color: statusColor,
                           ),

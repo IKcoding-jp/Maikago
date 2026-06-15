@@ -70,10 +70,7 @@ class AboutVersionSection extends StatelessWidget {
                 Expanded(
                   child: Text(
                     '更新情報',
-                    style: Theme.of(context)
-                        .textTheme
-                        .headlineMedium
-                        ?.copyWith(
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: Theme.of(
                             context,
@@ -128,10 +125,8 @@ class AboutVersionSection extends StatelessWidget {
                     icon: const Icon(Icons.store_rounded),
                     label: const Text('アプリストアで更新'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          Theme.of(context).colorScheme.tertiary,
-                      foregroundColor:
-                          Theme.of(context).colorScheme.onPrimary,
+                      backgroundColor: Theme.of(context).colorScheme.tertiary,
+                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
                       padding: const EdgeInsets.symmetric(
                         vertical: 12,
                       ),
@@ -171,10 +166,7 @@ class AboutVersionSection extends StatelessWidget {
                     children: [
                       Text(
                         'バージョン情報',
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodyLarge
-                            ?.copyWith(
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                               fontWeight: FontWeight.bold,
                               color: Theme.of(
                                 context,
@@ -197,8 +189,7 @@ class AboutVersionSection extends StatelessWidget {
                                       .withValues(alpha: 0.7),
                                 ),
                           ),
-                          if (isUpdateAvailable ||
-                              isCheckingUpdate) ...[
+                          if (isUpdateAvailable || isCheckingUpdate) ...[
                             const SizedBox(width: 8),
                             if (isCheckingUpdate)
                               const SizedBox(
@@ -215,9 +206,7 @@ class AboutVersionSection extends StatelessWidget {
                                   vertical: 2,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .tertiary,
+                                  color: Theme.of(context).colorScheme.tertiary,
                                   borderRadius: BorderRadius.circular(
                                     8,
                                   ),
@@ -251,11 +240,9 @@ class AboutVersionSection extends StatelessWidget {
                     ? Icons.hourglass_empty_rounded
                     : Icons.refresh_rounded,
               ),
-              label:
-                  Text(isCheckingUpdate ? 'チェック中...' : '更新をチェック'),
+              label: Text(isCheckingUpdate ? 'チェック中...' : '更新をチェック'),
               style: OutlinedButton.styleFrom(
-                foregroundColor:
-                    Theme.of(context).colorScheme.primary,
+                foregroundColor: Theme.of(context).colorScheme.primary,
                 side: BorderSide(
                   color: Theme.of(context).colorScheme.primary,
                 ),

@@ -32,7 +32,8 @@ void main() {
       cacheManager.removeDuplicateShops();
 
       expect(cacheManager.shops.length, 2);
-      expect(cacheManager.shops.map((s) => s.id).toList(), ['shop_1', 'shop_2']);
+      expect(
+          cacheManager.shops.map((s) => s.id).toList(), ['shop_1', 'shop_2']);
       // 最初に出現した方が保持される
       expect(cacheManager.shops[0].name, 'ショップ1');
     });

@@ -123,8 +123,7 @@ class _BottomSummaryActionsState extends State<BottomSummaryActions> {
           content: const Text('レシピ解析機能を使うにはGoogleログインが必要です。'),
           actions: [
             CommonDialog.closeButton(context),
-            CommonDialog.primaryButton(context, label: 'ログインする',
-                onPressed: () {
+            CommonDialog.primaryButton(context, label: 'ログインする', onPressed: () {
               context.pop();
               context.push('/settings/account');
             }),
@@ -140,8 +139,7 @@ class _BottomSummaryActionsState extends State<BottomSummaryActions> {
       PremiumUpgradeDialog.show(
         context,
         title: 'プレミアム機能',
-        message:
-            'レシピ解析はプレミアム限定機能です。\nレシピテキストから買い物リストを自動作成できます。',
+        message: 'レシピ解析はプレミアム限定機能です。\nレシピテキストから買い物リストを自動作成できます。',
         onUpgrade: () => context.push('/subscription'),
       );
       return;

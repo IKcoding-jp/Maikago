@@ -25,14 +25,11 @@ class AccountCard extends StatelessWidget {
               SettingsTheme.getCardColor(settingsState.selectedTheme),
           child: SettingsListItem(
             title: 'アカウント情報',
-            subtitle: authProvider.isLoggedIn
-                ? 'ログイン済み'
-                : 'Googleアカウントでログイン',
+            subtitle: authProvider.isLoggedIn ? 'ログイン済み' : 'Googleアカウントでログイン',
             leadingIcon: Icons.account_circle_rounded,
             backgroundColor:
                 SettingsTheme.getPrimaryColor(settingsState.selectedTheme),
-            textColor:
-                SettingsTheme.getTextColor(settingsState.selectedTheme),
+            textColor: SettingsTheme.getTextColor(settingsState.selectedTheme),
             iconColor:
                 SettingsTheme.getOnPrimaryColor(settingsState.selectedTheme),
             onTap: () {

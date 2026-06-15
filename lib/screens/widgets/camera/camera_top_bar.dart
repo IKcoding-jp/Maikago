@@ -46,7 +46,8 @@ class CameraTopBar extends StatelessWidget {
           children: [
             IconButton(
               onPressed: onClose,
-              icon: const Icon(Icons.close, color: AppColors.cameraForeground, size: 28),
+              icon: const Icon(Icons.close,
+                  color: AppColors.cameraForeground, size: 28),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -63,12 +64,14 @@ class CameraTopBar extends StatelessWidget {
             if (onPickFromGallery != null)
               IconButton(
                 onPressed: onPickFromGallery,
-                icon: const Icon(Icons.image_outlined, color: AppColors.cameraForeground),
+                icon: const Icon(Icons.image_outlined,
+                    color: AppColors.cameraForeground),
                 tooltip: '画像から読み取り',
               ),
             IconButton(
               onPressed: onHelp,
-              icon: const Icon(Icons.help_outline, color: AppColors.cameraForeground),
+              icon: const Icon(Icons.help_outline,
+                  color: AppColors.cameraForeground),
               tooltip: '撮影ガイドライン',
             ),
           ],

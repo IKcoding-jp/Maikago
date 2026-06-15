@@ -31,8 +31,8 @@ class ItemOperations {
             orElse: () => dataProvider.shops[
                 selectedTabIndex.clamp(0, dataProvider.shops.length - 1)],
           )
-        : dataProvider.shops[
-            selectedTabIndex.clamp(0, dataProvider.shops.length - 1)];
+        : dataProvider
+            .shops[selectedTabIndex.clamp(0, dataProvider.shops.length - 1)];
 
     // 共有タブの合計を事前更新
     if (shop.sharedTabGroupId != null) {
@@ -157,8 +157,10 @@ class ItemOperations {
     }
 
     // 範囲チェック（調整前）
-    if (oldIndex < 0 || oldIndex >= targetItems.length ||
-        newIndex < 0 || newIndex > targetItems.length) {
+    if (oldIndex < 0 ||
+        oldIndex >= targetItems.length ||
+        newIndex < 0 ||
+        newIndex > targetItems.length) {
       DebugService().logError(
           'インデックスが範囲外: oldIndex=$oldIndex, newIndex=$newIndex, リスト長=${targetItems.length}');
       return null;
@@ -208,7 +210,8 @@ class ItemOperations {
     } catch (e) {
       DebugService().logError('$labelリスト並べ替えエラー: $e');
       if (context.mounted) {
-        showErrorSnackBar(context, '並べ替えの保存に失敗しました: ${e.toString().replaceAll('Exception: ', '')}');
+        showErrorSnackBar(context,
+            '並べ替えの保存に失敗しました: ${e.toString().replaceAll('Exception: ', '')}');
       }
     }
 

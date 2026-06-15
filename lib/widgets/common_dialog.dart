@@ -171,8 +171,8 @@ class CommonDialog extends StatelessWidget {
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       backgroundColor: theme.cardColor,
-      insetPadding:
-          insetPadding ?? const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      insetPadding: insetPadding ??
+          const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
       contentPadding:
           contentPadding ?? const EdgeInsets.fromLTRB(24, 16, 24, 0),
       actionsPadding: const EdgeInsets.fromLTRB(24, 16, 24, 20),

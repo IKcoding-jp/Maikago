@@ -69,19 +69,13 @@ class DataServiceBase {
   Future<CollectionReference<Map<String, dynamic>>>
       get anonymousItemsCollection async {
     final sessionId = await getAnonymousSessionId();
-    return firestore
-        .collection('anonymous')
-        .doc(sessionId)
-        .collection('items');
+    return firestore.collection('anonymous').doc(sessionId).collection('items');
   }
 
   /// 匿名セッションのショップコレクション参照
   Future<CollectionReference<Map<String, dynamic>>>
       get anonymousShopsCollection async {
     final sessionId = await getAnonymousSessionId();
-    return firestore
-        .collection('anonymous')
-        .doc(sessionId)
-        .collection('shops');
+    return firestore.collection('anonymous').doc(sessionId).collection('shops');
   }
 }

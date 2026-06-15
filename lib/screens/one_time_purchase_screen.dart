@@ -308,7 +308,8 @@ class _OneTimePurchaseScreenState extends State<OneTimePurchaseScreen>
                       const SizedBox(width: 8),
                       Text(
                         feature,
-                        style: TextStyle(fontSize: theme.textTheme.bodyMedium?.fontSize),
+                        style: TextStyle(
+                            fontSize: theme.textTheme.bodyMedium?.fontSize),
                       ),
                     ],
                   ),

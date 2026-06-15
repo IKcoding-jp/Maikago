@@ -67,10 +67,8 @@ class _CameraGuidelinesDialogState extends State<CameraGuidelinesDialog> {
                           '• 文字がくっきり見えるようピントを合わせる\n'
                           '• 手ブレしないようしっかり構える',
                           style: TextStyle(
-                            fontSize: Theme.of(context)
-                                .textTheme
-                                .bodySmall
-                                ?.fontSize,
+                            fontSize:
+                                Theme.of(context).textTheme.bodySmall?.fontSize,
                             color: Theme.of(context).colorScheme.onSurface,
                             height: 1.5,
                           ),
@@ -110,10 +108,8 @@ class _CameraGuidelinesDialogState extends State<CameraGuidelinesDialog> {
                         child: Text(
                           'カメラの画質やピント、値札の種類によっては、正しく読み取れず、リストが間違った名前や金額で表示されてしまうこともあります。その場合は手動で書き換えてください。',
                           style: TextStyle(
-                            fontSize: Theme.of(context)
-                                .textTheme
-                                .bodySmall
-                                ?.fontSize,
+                            fontSize:
+                                Theme.of(context).textTheme.bodySmall?.fontSize,
                             color: Theme.of(context).colorScheme.onSurface,
                             height: 1.5,
                           ),
@@ -131,10 +127,8 @@ class _CameraGuidelinesDialogState extends State<CameraGuidelinesDialog> {
                           '• 画像は端末内で処理され、外部に送信されません\n'
                           '• 商品名と価格の読み取りのみに使用されます',
                           style: TextStyle(
-                            fontSize: Theme.of(context)
-                                .textTheme
-                                .bodySmall
-                                ?.fontSize,
+                            fontSize:
+                                Theme.of(context).textTheme.bodySmall?.fontSize,
                             color: Theme.of(context).colorScheme.onSurface,
                             height: 1.5,
                           ),
@@ -260,8 +254,7 @@ class _CameraGuidelinesDialogState extends State<CameraGuidelinesDialog> {
                 title,
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize:
-                      Theme.of(context).textTheme.bodyMedium?.fontSize,
+                  fontSize: Theme.of(context).textTheme.bodyMedium?.fontSize,
                   color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
@@ -284,8 +277,7 @@ class _CameraGuidelinesDialogState extends State<CameraGuidelinesDialog> {
           child: Text(
             text,
             style: TextStyle(
-              fontSize:
-                  Theme.of(context).textTheme.bodySmall?.fontSize,
+              fontSize: Theme.of(context).textTheme.bodySmall?.fontSize,
               color: Theme.of(context).colorScheme.onSurface,
               height: 1.5,
             ),

@@ -39,7 +39,10 @@ class UsageHeader extends StatelessWidget {
             '簡単に使える買い物リスト管理アプリ',
             style: Theme.of(
               context,
-            ).textTheme.bodyLarge?.copyWith(color: Theme.of(context).colorScheme.onPrimary),
+            )
+                .textTheme
+                .bodyLarge
+                ?.copyWith(color: Theme.of(context).colorScheme.onPrimary),
             textAlign: TextAlign.center,
           ),
         ],

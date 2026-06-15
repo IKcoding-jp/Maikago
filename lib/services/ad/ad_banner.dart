@@ -72,8 +72,7 @@ class _AdBannerState extends State<AdBanner> {
     // OneTimePurchaseServiceの初期化を待つ
     final purchaseService = _purchaseService;
     try {
-      await purchaseService.initialized
-          .timeout(const Duration(seconds: 3));
+      await purchaseService.initialized.timeout(const Duration(seconds: 3));
     } catch (_) {
       // タイムアウト時はそのまま続行
     }

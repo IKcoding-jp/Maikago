@@ -42,7 +42,8 @@ class PremiumUpgradeDialog extends StatelessWidget {
       content: Text(message),
       actions: [
         CommonDialog.closeButton(context),
-        CommonDialog.primaryButton(context, label: 'プレミアムにアップグレード', onPressed: () {
+        CommonDialog.primaryButton(context, label: 'プレミアムにアップグレード',
+            onPressed: () {
           context.pop();
           onUpgrade?.call();
         }),

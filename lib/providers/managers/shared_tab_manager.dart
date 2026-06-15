@@ -124,9 +124,8 @@ class SharedTabManager {
           _cacheManager.shops.indexWhere((shop) => shop.id == tabId);
       if (tabIndex != -1) {
         // addAllではなく、正確なメンバーリストに置換（解除タブの残留を防止）
-        final updatedSharedTabs = allGroupMemberIds
-            .where((id) => id != tabId)
-            .toList();
+        final updatedSharedTabs =
+            allGroupMemberIds.where((id) => id != tabId).toList();
         final updatedTabShop = _cacheManager.shops[tabIndex].copyWith(
           sharedTabGroupId: sharedTabGroupId,
           sharedTabs: updatedSharedTabs,
@@ -185,7 +184,8 @@ class SharedTabManager {
     if (shopIndex == -1) return;
 
     final currentShop = _cacheManager.shops[shopIndex];
-    String? sharedTabGroupId = originalSharedTabGroupId ?? currentShop.sharedTabGroupId;
+    String? sharedTabGroupId =
+        originalSharedTabGroupId ?? currentShop.sharedTabGroupId;
     if (sharedTabGroupId == null) {
       for (final shop in _cacheManager.shops) {
         if (shop.sharedTabs.contains(shopId)) {
@@ -260,8 +260,7 @@ class SharedTabManager {
       final updatedShop = (newBudget == null || newBudget == 0)
           ? shop.copyWith(clearBudget: true)
           : shop.copyWith(budget: newBudget);
-      final shopIndex =
-          _cacheManager.shops.indexWhere((s) => s.id == shop.id);
+      final shopIndex = _cacheManager.shops.indexWhere((s) => s.id == shop.id);
       if (shopIndex != -1) {
         _cacheManager.shops[shopIndex] = updatedShop;
       }

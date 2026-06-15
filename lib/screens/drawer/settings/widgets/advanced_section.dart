@@ -49,18 +49,15 @@ class _AdvancedSettingsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SettingsCard(
-      backgroundColor:
-          SettingsTheme.getCardColor(settingsState.selectedTheme),
+      backgroundColor: SettingsTheme.getCardColor(settingsState.selectedTheme),
       child: SettingsListItem(
         title: '詳細設定',
         subtitle: 'アプリの詳細な設定',
         leadingIcon: Icons.settings_applications,
         backgroundColor:
             SettingsTheme.getPrimaryColor(settingsState.selectedTheme),
-        textColor:
-            SettingsTheme.getTextColor(settingsState.selectedTheme),
-        iconColor:
-            SettingsTheme.getOnPrimaryColor(settingsState.selectedTheme),
+        textColor: SettingsTheme.getTextColor(settingsState.selectedTheme),
+        iconColor: SettingsTheme.getOnPrimaryColor(settingsState.selectedTheme),
         onTap: () {
           context.push('/settings/advanced', extra: {
             'currentTheme': settingsState.selectedTheme,

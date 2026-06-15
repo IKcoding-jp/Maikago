@@ -25,7 +25,8 @@ mixin ItemDataOperations on DataServiceBase {
       }
     } catch (e) {
       if (e.toString().contains('permission-denied')) {
-        throw const PermissionDeniedError('Firebaseの権限エラーです。セキュリティルールを確認してください。');
+        throw const PermissionDeniedError(
+            'Firebaseの権限エラーです。セキュリティルールを確認してください。');
       }
       rethrow;
     }

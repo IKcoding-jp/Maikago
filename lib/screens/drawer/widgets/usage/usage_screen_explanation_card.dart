@@ -91,7 +91,8 @@ class UsageScreenExplanationCard extends StatelessWidget {
             color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(icon, color: Theme.of(context).colorScheme.primary, size: 20),
+          child: Icon(icon,
+              color: Theme.of(context).colorScheme.primary, size: 20),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -108,7 +109,10 @@ class UsageScreenExplanationCard extends StatelessWidget {
                 description,
                 style: Theme.of(
                   context,
-                ).textTheme.bodySmall?.copyWith(color: Theme.of(context).subtextColor),
+                )
+                    .textTheme
+                    .bodySmall
+                    ?.copyWith(color: Theme.of(context).subtextColor),
               ),
             ],
           ),

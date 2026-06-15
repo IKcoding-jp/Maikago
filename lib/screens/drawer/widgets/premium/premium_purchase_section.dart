@@ -46,7 +46,8 @@ class _PremiumPurchaseSectionState extends State<PremiumPurchaseSection> {
                   Text(
                     'プレミアム機能を利用中',
                     style: TextStyle(
-                      fontSize: Theme.of(context).textTheme.headlineLarge?.fontSize,
+                      fontSize:
+                          Theme.of(context).textTheme.headlineLarge?.fontSize,
                       fontWeight: FontWeight.bold,
                       color: Theme.of(context).colorScheme.onPrimary,
                     ),
@@ -91,7 +92,10 @@ class _PremiumPurchaseSectionState extends State<PremiumPurchaseSection> {
                       Text(
                         purchase.name,
                         style: TextStyle(
-                          fontSize: Theme.of(context).textTheme.headlineMedium?.fontSize,
+                          fontSize: Theme.of(context)
+                              .textTheme
+                              .headlineMedium
+                              ?.fontSize,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -99,7 +103,8 @@ class _PremiumPurchaseSectionState extends State<PremiumPurchaseSection> {
                       Text(
                         purchase.description,
                         style: TextStyle(
-                          fontSize: Theme.of(context).textTheme.bodyMedium?.fontSize,
+                          fontSize:
+                              Theme.of(context).textTheme.bodyMedium?.fontSize,
                           color: Theme.of(context).subtextColor,
                         ),
                       ),
@@ -112,7 +117,8 @@ class _PremiumPurchaseSectionState extends State<PremiumPurchaseSection> {
                     Text(
                       '¥${purchase.price}',
                       style: TextStyle(
-                        fontSize: Theme.of(context).textTheme.headlineLarge?.fontSize,
+                        fontSize:
+                            Theme.of(context).textTheme.headlineLarge?.fontSize,
                         fontWeight: FontWeight.bold,
                         color: Theme.of(context).colorScheme.primary,
                       ),
@@ -129,7 +135,8 @@ class _PremiumPurchaseSectionState extends State<PremiumPurchaseSection> {
                         '全機能パック',
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.onPrimary,
-                          fontSize: Theme.of(context).textTheme.bodySmall?.fontSize,
+                          fontSize:
+                              Theme.of(context).textTheme.bodySmall?.fontSize,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -153,7 +160,11 @@ class _PremiumPurchaseSectionState extends State<PremiumPurchaseSection> {
                       const SizedBox(width: 8),
                       Text(
                         feature,
-                        style: TextStyle(fontSize: Theme.of(context).textTheme.bodyMedium?.fontSize),
+                        style: TextStyle(
+                            fontSize: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.fontSize),
                       ),
                     ],
                   ),
@@ -181,7 +192,8 @@ class _PremiumPurchaseSectionState extends State<PremiumPurchaseSection> {
                     child: Text(
                       isPurchased ? '購入済み' : '購入する',
                       style: TextStyle(
-                        fontSize: Theme.of(context).textTheme.bodyLarge?.fontSize,
+                        fontSize:
+                            Theme.of(context).textTheme.bodyLarge?.fontSize,
                         fontWeight: FontWeight.bold,
                       ),
                     ),

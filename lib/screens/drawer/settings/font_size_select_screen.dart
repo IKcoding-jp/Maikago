@@ -172,8 +172,9 @@ class _FontSizeSelectScreenState extends State<FontSizeSelectScreen> {
         backgroundColor: isSelected
             ? widget.theme.colorScheme.primary
             : widget.theme.cardColor,
-        foregroundColor:
-            isSelected ? widget.theme.colorScheme.onPrimary : widget.theme.colorScheme.onSurface,
+        foregroundColor: isSelected
+            ? widget.theme.colorScheme.onPrimary
+            : widget.theme.colorScheme.onSurface,
         side: BorderSide(
           color: isSelected
               ? widget.theme.colorScheme.primary

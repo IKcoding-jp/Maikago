@@ -77,12 +77,15 @@ class CameraBottomControls extends StatelessWidget {
         height: 80,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: isCapturing ? AppColors.cameraDisabled : AppColors.cameraForeground,
+          color: isCapturing
+              ? AppColors.cameraDisabled
+              : AppColors.cameraForeground,
           border: Border.all(color: AppColors.cameraForeground, width: 4),
         ),
         child: isCapturing
             ? const CircularProgressIndicator(color: AppColors.cameraBackground)
-            : const Icon(Icons.camera_alt, color: AppColors.cameraBackground, size: 40),
+            : const Icon(Icons.camera_alt,
+                color: AppColors.cameraBackground, size: 40),
       ),
     );
   }

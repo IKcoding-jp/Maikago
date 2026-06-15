@@ -66,8 +66,7 @@ class _ThemeCard extends StatelessWidget {
             leadingIcon: Icons.color_lens_rounded,
             backgroundColor:
                 SettingsTheme.getPrimaryColor(settingsState.selectedTheme),
-            textColor:
-                SettingsTheme.getTextColor(settingsState.selectedTheme),
+            textColor: SettingsTheme.getTextColor(settingsState.selectedTheme),
             iconColor:
                 SettingsTheme.getOnPrimaryColor(settingsState.selectedTheme),
             onTap: onTap,
@@ -105,8 +104,7 @@ class _FontCard extends StatelessWidget {
             leadingIcon: Icons.font_download_rounded,
             backgroundColor:
                 SettingsTheme.getPrimaryColor(settingsState.selectedTheme),
-            textColor:
-                SettingsTheme.getTextColor(settingsState.selectedTheme),
+            textColor: SettingsTheme.getTextColor(settingsState.selectedTheme),
             iconColor:
                 SettingsTheme.getOnPrimaryColor(settingsState.selectedTheme),
             onTap: onTap,
@@ -130,18 +128,15 @@ class _FontSizeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SettingsCard(
-      backgroundColor:
-          SettingsTheme.getCardColor(settingsState.selectedTheme),
+      backgroundColor: SettingsTheme.getCardColor(settingsState.selectedTheme),
       child: SettingsListItem(
         title: 'フォントサイズ',
         subtitle: '${settingsState.selectedFontSize.toInt()}px',
         leadingIcon: Icons.text_fields_rounded,
         backgroundColor:
             SettingsTheme.getPrimaryColor(settingsState.selectedTheme),
-        textColor:
-            SettingsTheme.getTextColor(settingsState.selectedTheme),
-        iconColor:
-            SettingsTheme.getOnPrimaryColor(settingsState.selectedTheme),
+        textColor: SettingsTheme.getTextColor(settingsState.selectedTheme),
+        iconColor: SettingsTheme.getOnPrimaryColor(settingsState.selectedTheme),
         onTap: onTap,
       ),
     );

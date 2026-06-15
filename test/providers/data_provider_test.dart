@@ -287,8 +287,7 @@ void main() {
       }
       expect(dataProvider.items.length, 3);
 
-      final idsToDelete =
-          dataProvider.items.map((item) => item.id).toList();
+      final idsToDelete = dataProvider.items.map((item) => item.id).toList();
       await dataProvider.deleteItems(idsToDelete);
 
       expect(dataProvider.items, isEmpty);

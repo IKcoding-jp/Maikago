@@ -196,12 +196,13 @@ class OcrResultItemCard extends StatelessWidget {
           TextFormField(
             initialValue: item.name,
             maxLength: 150,
-            buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
+            buildCounter: (context,
+                    {required currentLength, required isFocused, maxLength}) =>
+                null,
             decoration: const InputDecoration(
               labelText: '読み取り商品名',
               border: OutlineInputBorder(),
-              contentPadding:
-                  EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             ),
             onChanged: (value) {
               onItemChanged(item.copyWith(name: value));
@@ -216,7 +217,11 @@ class OcrResultItemCard extends StatelessWidget {
                 child: TextFormField(
                   initialValue: item.price.toString(),
                   maxLength: 8,
-                  buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
+                  buildCounter: (context,
+                          {required currentLength,
+                          required isFocused,
+                          maxLength}) =>
+                      null,
                   decoration: const InputDecoration(
                     labelText: '価格',
                     prefixText: '\u00a5',
@@ -237,7 +242,11 @@ class OcrResultItemCard extends StatelessWidget {
                 child: TextFormField(
                   initialValue: item.quantity.toString(),
                   maxLength: 3,
-                  buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
+                  buildCounter: (context,
+                          {required currentLength,
+                          required isFocused,
+                          maxLength}) =>
+                      null,
                   decoration: const InputDecoration(
                     labelText: '数量',
                     border: OutlineInputBorder(),

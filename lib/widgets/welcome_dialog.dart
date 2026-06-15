@@ -173,7 +173,10 @@ class _WelcomeDialogState extends State<WelcomeDialog>
                       Container(
                         padding: EdgeInsets.all(isSmallScreen ? 10 : 12),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.2),
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onPrimary
+                              .withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(18),
                         ),
                         child: Icon(
@@ -246,7 +249,10 @@ class _WelcomeDialogState extends State<WelcomeDialog>
                           borderRadius: BorderRadius.circular(4),
                           color: _currentPage == index
                               ? Theme.of(context).primaryColor
-                              : Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+                              : Theme.of(context)
+                                  .colorScheme
+                                  .outline
+                                  .withValues(alpha: 0.3),
                         ),
                       ),
                     ),
@@ -295,7 +301,8 @@ class _WelcomeDialogState extends State<WelcomeDialog>
                           onPressed: _nextPage,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Theme.of(context).primaryColor,
-                            foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                            foregroundColor:
+                                Theme.of(context).colorScheme.onPrimary,
                             padding: EdgeInsets.symmetric(
                               vertical: isSmallScreen ? 14 : 16,
                             ),

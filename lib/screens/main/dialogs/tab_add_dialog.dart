@@ -83,8 +83,11 @@ class _TabAddDialogState extends State<TabAddDialog> {
           TextField(
             controller: controller,
             maxLength: 50,
-            buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
-            decoration: CommonDialog.textFieldDecoration(context, labelText: 'タブ名'),
+            buildCounter: (context,
+                    {required currentLength, required isFocused, maxLength}) =>
+                null,
+            decoration:
+                CommonDialog.textFieldDecoration(context, labelText: 'タブ名'),
           ),
         ],
       ),

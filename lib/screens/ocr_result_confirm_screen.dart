@@ -353,11 +353,9 @@ class _OcrResultConfirmScreenState extends State<OcrResultConfirmScreen> {
                         index: index,
                         matchedItem: _matchedItems[index],
                         isOverwrite: _itemsToOverwrite.contains(index),
-                        onItemChanged: (updated) =>
-                            _updateItem(index, updated),
+                        onItemChanged: (updated) => _updateItem(index, updated),
                         onRemove: () => _removeItem(index),
-                        onOverwriteChanged: (val) =>
-                            _setOverwrite(index, val),
+                        onOverwriteChanged: (val) => _setOverwrite(index, val),
                         onUnlinkMatch: () => _unlinkMatch(index),
                         onLinkExistingItem: () =>
                             _handleSelectExistingItem(index),

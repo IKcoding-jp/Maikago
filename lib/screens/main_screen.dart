@@ -270,8 +270,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
 
     return Consumer<DataProvider>(
       builder: (context, dataProvider, child) {
-        final sortedShops =
-            TabSorter.sortShopsBySharedTabs(dataProvider.shops);
+        final sortedShops = TabSorter.sortShopsBySharedTabs(dataProvider.shops);
 
         final selectedIndex = sortedShops.isEmpty
             ? 0
@@ -294,8 +293,8 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
                   Text(
                     'データを読み込み中...',
                     style: theme.textTheme.bodyLarge?.copyWith(
-                          color: theme.colorScheme.onSurface,
-                        ),
+                      color: theme.colorScheme.onSurface,
+                    ),
                   ),
                 ],
               ),
@@ -351,9 +350,8 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
             drawerItemColor: currentTheme == 'dark'
                 ? theme.colorScheme.onPrimary
                 : theme.colorScheme.primary,
-            drawerTextColor: currentTheme == 'dark'
-                ? theme.colorScheme.onPrimary
-                : null,
+            drawerTextColor:
+                currentTheme == 'dark' ? theme.colorScheme.onPrimary : null,
             onCustomColorsChanged: updateCustomColors,
             onSettingsReturned: () {},
           ),
@@ -374,7 +372,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
               if (shop != null) {
                 ItemRenameDialog.show(context, item);
               }
-              },
+            },
             onUpdate: _handleUpdate,
             onReorderInc: _reorderIncItems,
             onReorderCom: _reorderComItems,

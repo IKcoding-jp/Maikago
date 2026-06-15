@@ -39,10 +39,7 @@ class AboutFeaturesSection extends StatelessWidget {
                 Expanded(
                   child: Text(
                     'アプリの特徴',
-                    style: Theme.of(context)
-                        .textTheme
-                        .headlineMedium
-                        ?.copyWith(
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: Theme.of(
                             context,

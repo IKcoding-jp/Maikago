@@ -130,7 +130,11 @@ class _ListItemEditDialogState extends State<ListItemEditDialog> {
               TextField(
                 controller: _nameController,
                 maxLength: 100,
-                buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
+                buildCounter: (context,
+                        {required currentLength,
+                        required isFocused,
+                        maxLength}) =>
+                    null,
                 decoration: InputDecoration(
                   labelText: 'アイテム名',
                   border: const OutlineInputBorder(),
@@ -146,7 +150,11 @@ class _ListItemEditDialogState extends State<ListItemEditDialog> {
                 controller: _quantityController,
                 keyboardType: TextInputType.number,
                 maxLength: 4,
-                buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
+                buildCounter: (context,
+                        {required currentLength,
+                        required isFocused,
+                        maxLength}) =>
+                    null,
                 decoration: InputDecoration(
                   labelText: '個数',
                   border: const OutlineInputBorder(),
@@ -178,7 +186,11 @@ class _ListItemEditDialogState extends State<ListItemEditDialog> {
                 controller: _priceController,
                 keyboardType: TextInputType.number,
                 maxLength: 8,
-                buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
+                buildCounter: (context,
+                        {required currentLength,
+                        required isFocused,
+                        maxLength}) =>
+                    null,
                 decoration: InputDecoration(
                   labelText: '単価 (円)',
                   border: const OutlineInputBorder(),
@@ -211,7 +223,11 @@ class _ListItemEditDialogState extends State<ListItemEditDialog> {
                 controller: _discountController,
                 keyboardType: TextInputType.number,
                 maxLength: 3,
-                buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
+                buildCounter: (context,
+                        {required currentLength,
+                        required isFocused,
+                        maxLength}) =>
+                    null,
                 decoration: InputDecoration(
                   labelText: '割引率 (%)',
                   border: const OutlineInputBorder(),
@@ -264,7 +280,8 @@ class _ListItemEditDialogState extends State<ListItemEditDialog> {
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Theme.of(context).colorScheme.primary,
-                        fontSize: Theme.of(context).textTheme.bodyLarge?.fontSize,
+                        fontSize:
+                            Theme.of(context).textTheme.bodyLarge?.fontSize,
                       ),
                     ),
                   ],

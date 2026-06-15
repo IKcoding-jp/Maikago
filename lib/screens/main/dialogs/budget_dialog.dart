@@ -77,7 +77,8 @@ class _BudgetDialogState extends State<BudgetDialog> {
     } else {
       final budget = int.tryParse(budgetText);
       if (budget == null) {
-        showErrorSnackBar(context, '有効な数値を入力してください', duration: const Duration(seconds: 2));
+        showErrorSnackBar(context, '有効な数値を入力してください',
+            duration: const Duration(seconds: 2));
         return;
       }
       finalBudget = budget;
@@ -137,7 +138,11 @@ class _BudgetDialogState extends State<BudgetDialog> {
               TextField(
                 controller: controller,
                 maxLength: 8,
-                buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
+                buildCounter: (context,
+                        {required currentLength,
+                        required isFocused,
+                        maxLength}) =>
+                    null,
                 decoration: CommonDialog.textFieldDecoration(
                   context,
                   labelText: '金額 (¥)',

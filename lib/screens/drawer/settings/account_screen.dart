@@ -166,7 +166,8 @@ class AccountScreen extends StatelessWidget {
           Consumer<DataProvider>(
             builder: (context, dataProvider, _) {
               final isSynced = dataProvider.isSynced;
-              final statusColor = isSynced ? AppColors.success : AppColors.warning;
+              final statusColor =
+                  isSynced ? AppColors.success : AppColors.warning;
 
               return Container(
                 padding: const EdgeInsets.all(16),
@@ -199,7 +200,8 @@ class AccountScreen extends StatelessWidget {
                           Text(
                             isSynced ? 'データは安全に保存されています' : 'ログインしてデータを同期してください',
                             style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurface.withValues(alpha: 0.70),
+                              color: theme.colorScheme.onSurface
+                                  .withValues(alpha: 0.70),
                             ),
                           ),
                         ],
@@ -259,8 +261,10 @@ class AccountScreen extends StatelessWidget {
         title: 'ログアウト',
         content: const Text('ログアウトしますか？\nローカルデータは保持されます。'),
         actions: [
-          CommonDialog.cancelButton(context, onPressed: () => context.pop(false)),
-          CommonDialog.destructiveButton(context, label: 'ログアウト', onPressed: () => context.pop(true)),
+          CommonDialog.cancelButton(context,
+              onPressed: () => context.pop(false)),
+          CommonDialog.destructiveButton(context,
+              label: 'ログアウト', onPressed: () => context.pop(true)),
         ],
       ),
     );

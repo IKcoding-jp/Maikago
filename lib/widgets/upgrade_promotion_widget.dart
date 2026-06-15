@@ -82,7 +82,8 @@ class UpgradePromotionWidget extends StatelessWidget {
               Text(
                 title ?? 'まいかごプレミアム',
                 style: TextStyle(
-                  fontSize: Theme.of(context).textTheme.headlineMedium?.fontSize,
+                  fontSize:
+                      Theme.of(context).textTheme.headlineMedium?.fontSize,
                   fontWeight: FontWeight.bold,
                   color: Theme.of(context).colorScheme.onPrimary,
                 ),
@@ -270,7 +271,8 @@ class UpgradePromotionWidget extends StatelessWidget {
                     Text(
                       feature,
                       style: TextStyle(
-                        fontSize: Theme.of(context).textTheme.bodyMedium?.fontSize,
+                        fontSize:
+                            Theme.of(context).textTheme.bodyMedium?.fontSize,
                         color: Theme.of(context).colorScheme.onPrimary,
                       ),
                     ),

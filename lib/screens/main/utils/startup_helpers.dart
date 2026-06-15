@@ -77,7 +77,10 @@ class StartupHelpers {
         barrierDismissible: false,
         builder: (dialogContext) => WelcomeDialog(
           onCompleted: () {
-            if (fabKey != null && itemListKey != null && addTabKey != null && budgetKey != null) {
+            if (fabKey != null &&
+                itemListKey != null &&
+                addTabKey != null &&
+                budgetKey != null) {
               _showCoachMark(
                 context,
                 fabKey: fabKey,
@@ -90,7 +93,10 @@ class StartupHelpers {
         ),
       ));
     } else if (!isFirstLaunch) {
-      if (fabKey != null && itemListKey != null && addTabKey != null && budgetKey != null) {
+      if (fabKey != null &&
+          itemListKey != null &&
+          addTabKey != null &&
+          budgetKey != null) {
         await _showCoachMark(
           context,
           fabKey: fabKey,

@@ -136,7 +136,10 @@ class UsageListOperationCard extends StatelessWidget {
                 Text(
                   details,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.7),
                         height: 1.4,
                       ),
                 ),

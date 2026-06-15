@@ -78,8 +78,8 @@ class DataCacheManager {
 
     _isDataLoaded = true;
     _lastSyncTime = DateTime.now();
-    DebugService().logInfo(
-        'データ読み込み完了: アイテム${_items.length}件、ショップ${_shops.length}件');
+    DebugService()
+        .logInfo('データ読み込み完了: アイテム${_items.length}件、ショップ${_shops.length}件');
   }
 
   Future<void> _loadItems() async {

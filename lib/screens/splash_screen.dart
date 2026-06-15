@@ -76,7 +76,8 @@ class _SplashScreenState extends State<SplashScreen>
       dataProvider.setAuthProvider(authProvider);
       // 未ログイン時・ゲストモード時はローカルモードで動作し、Firestoreへはアクセスしない
       // セキュリティ根拠: 匿名コレクションを禁止するルールに整合、不要な公開範囲を持たない
-      dataProvider.setLocalMode(!authProvider.isLoggedIn || authProvider.isGuestMode);
+      dataProvider
+          .setLocalMode(!authProvider.isLoggedIn || authProvider.isGuestMode);
 
       // データ読み込みを実行（45秒でタイムアウト）
       await dataProvider.loadData().timeout(

@@ -113,7 +113,6 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
@@ -204,7 +203,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       label: Text(
                         _isLoading ? 'ログイン中...' : 'Googleアカウントでログイン',
                         style: TextStyle(
-                          fontSize: Theme.of(context).textTheme.bodyLarge?.fontSize,
+                          fontSize:
+                              Theme.of(context).textTheme.bodyLarge?.fontSize,
                           fontWeight: FontWeight.w600,
                           color: colorScheme.onPrimary,
                         ),
@@ -213,7 +213,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         backgroundColor: colorScheme.primary,
                         foregroundColor: colorScheme.onPrimary,
                         elevation: 4,
-                        shadowColor: colorScheme.primary.withValues(alpha: 0.30),
+                        shadowColor:
+                            colorScheme.primary.withValues(alpha: 0.30),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
@@ -280,7 +281,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           style: Theme.of(context)
                               .textTheme
                               .bodyMedium
-                              ?.copyWith(color: colorScheme.onSurface.withValues(alpha: 0.7)),
+                              ?.copyWith(
+                                  color: colorScheme.onSurface
+                                      .withValues(alpha: 0.7)),
                           textAlign: TextAlign.center,
                         ),
                       ],

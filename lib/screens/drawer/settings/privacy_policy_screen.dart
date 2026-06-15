@@ -67,7 +67,8 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
         'プライバシーポリシー',
         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
               fontWeight: FontWeight.bold,
-              color: SettingsTheme.getOnPrimaryColor(settingsState.selectedTheme),
+              color:
+                  SettingsTheme.getOnPrimaryColor(settingsState.selectedTheme),
             ),
       ),
       backgroundColor:
@@ -122,7 +123,8 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
                       settingsState.selectedTheme),
                   child: Icon(
                     Icons.privacy_tip_rounded,
-                    color: SettingsTheme.getOnPrimaryColor(settingsState.selectedTheme),
+                    color: SettingsTheme.getOnPrimaryColor(
+                        settingsState.selectedTheme),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -130,7 +132,8 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
                   'プライバシーポリシー',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: SettingsTheme.getTextColor(settingsState.selectedTheme),
+                        color: SettingsTheme.getTextColor(
+                            settingsState.selectedTheme),
                       ),
                 ),
               ],
@@ -139,7 +142,8 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
             Text(
               '最終更新日: 2025年1月',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: SettingsTheme.getSubtextColor(settingsState.selectedTheme),
+                    color: SettingsTheme.getSubtextColor(
+                        settingsState.selectedTheme),
                   ),
             ),
           ],
@@ -295,7 +299,8 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
         Text(
           content,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: SettingsTheme.getSubtextColor(settingsState.selectedTheme),
+                color:
+                    SettingsTheme.getSubtextColor(settingsState.selectedTheme),
                 height: 1.6,
               ),
         ),

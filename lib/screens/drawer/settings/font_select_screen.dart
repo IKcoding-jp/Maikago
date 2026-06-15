@@ -65,9 +65,9 @@ class _FontSelectScreenState extends State<FontSelectScreen>
             style: Theme.of(
               context,
             ).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.onPrimary,
-            ),
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.onPrimary,
+                ),
           ),
           backgroundColor: Theme.of(context).colorScheme.primary,
           foregroundColor: Theme.of(context).colorScheme.onPrimary,
@@ -172,8 +172,9 @@ class _FontSelectScreenState extends State<FontSelectScreen>
       itemBuilder: (context, index) {
         final font = fonts[index];
         final isSelected = selectedFont == font['key'];
-        final isLocked = !context.read<OneTimePurchaseService>().isPremiumUnlocked &&
-            font['key'] != 'nunito';
+        final isLocked =
+            !context.read<OneTimePurchaseService>().isPremiumUnlocked &&
+                font['key'] != 'nunito';
 
         return _buildFontItem(
           context: context,
@@ -232,12 +233,13 @@ class _FontSelectScreenState extends State<FontSelectScreen>
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
       decoration: BoxDecoration(
-        color: isSelected
-            ? primaryColor.withValues(alpha: 0.10)
-            : backgroundColor,
+        color:
+            isSelected ? primaryColor.withValues(alpha: 0.10) : backgroundColor,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isSelected ? primaryColor : Theme.of(context).colorScheme.outline.withValues(alpha: 0.31),
+          color: isSelected
+              ? primaryColor
+              : Theme.of(context).colorScheme.outline.withValues(alpha: 0.31),
           width: isSelected ? 2.5 : 1.5,
         ),
         boxShadow: isSelected
@@ -290,7 +292,9 @@ class _FontSelectScreenState extends State<FontSelectScreen>
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.check, size: 12, color: Theme.of(context).colorScheme.onPrimary),
+                        Icon(Icons.check,
+                            size: 12,
+                            color: Theme.of(context).colorScheme.onPrimary),
                         const SizedBox(width: 2),
                         Text(
                           '選択中',
@@ -316,7 +320,9 @@ class _FontSelectScreenState extends State<FontSelectScreen>
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.lock, size: 12, color: Theme.of(context).colorScheme.onPrimary),
+                        Icon(Icons.lock,
+                            size: 12,
+                            color: Theme.of(context).colorScheme.onPrimary),
                         const SizedBox(width: 2),
                         Text(
                           '制限中',

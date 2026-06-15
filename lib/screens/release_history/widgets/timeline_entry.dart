@@ -125,9 +125,8 @@ class TimelineEntry extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
       decoration: BoxDecoration(
-        color: isFirst
-            ? primaryColor.withValues(alpha: 0.06)
-            : Colors.transparent,
+        color:
+            isFirst ? primaryColor.withValues(alpha: 0.06) : Colors.transparent,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
       ),
       child: Row(
@@ -143,11 +142,9 @@ class TimelineEntry extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           // バッジ
-          if (isCurrent)
-            _buildPill(context, '現在のバージョン', primaryColor),
+          if (isCurrent) _buildPill(context, '現在のバージョン', primaryColor),
           if (isFirst && !isCurrent)
-            _buildPill(
-                context, '最新', theme.colorScheme.primary),
+            _buildPill(context, '最新', theme.colorScheme.primary),
           const Spacer(),
           // 日付
           Text(
@@ -201,8 +198,7 @@ class TimelineEntry extends StatelessWidget {
     );
   }
 
-  Widget _buildComment(
-      BuildContext context, ThemeData theme, String comment) {
+  Widget _buildComment(BuildContext context, ThemeData theme, String comment) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -212,8 +208,7 @@ class TimelineEntry extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.lightbulb_outline_rounded,
-              color: primaryColor, size: 18),
+          Icon(Icons.lightbulb_outline_rounded, color: primaryColor, size: 18),
           const SizedBox(width: 8),
           Expanded(
             child: Text(

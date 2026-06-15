@@ -15,22 +15,19 @@ class AppException implements Exception {
 
 /// リソースが見つからないエラー（Firestore document not found等）
 class NotFoundError extends AppException {
-  const NotFoundError(
-      [super.message = 'アイテムが見つかりませんでした。再度お試しください。'])
+  const NotFoundError([super.message = 'アイテムが見つかりませんでした。再度お試しください。'])
       : super(code: 'not-found');
 }
 
 /// 権限エラー（Firestore permission-denied等）
 class PermissionDeniedError extends AppException {
-  const PermissionDeniedError(
-      [super.message = '権限がありません。ログイン状態を確認してください。'])
+  const PermissionDeniedError([super.message = '権限がありません。ログイン状態を確認してください。'])
       : super(code: 'permission-denied');
 }
 
 /// ネットワークエラー
 class NetworkError extends AppException {
-  const NetworkError(
-      [super.message = 'ネットワーク接続を確認してください。'])
+  const NetworkError([super.message = 'ネットワーク接続を確認してください。'])
       : super(code: 'network-error');
 }
 

@@ -131,8 +131,7 @@ class MainDrawer extends StatelessWidget {
           Text(
             'まいカゴ',
             style: TextStyle(
-              fontSize:
-                  Theme.of(context).textTheme.displayMedium?.fontSize,
+              fontSize: Theme.of(context).textTheme.displayMedium?.fontSize,
               color: SettingsTheme.getOnPrimaryColor(currentTheme),
               fontWeight: FontWeight.bold,
             ),
@@ -170,7 +169,9 @@ class MainDrawer extends StatelessWidget {
         return ListTile(
           leading: Icon(
             isPremium ? Icons.star_rounded : Icons.star_border_rounded,
-            color: isPremium ? Theme.of(context).colorScheme.primary : drawerItemColor,
+            color: isPremium
+                ? Theme.of(context).colorScheme.primary
+                : drawerItemColor,
           ),
           title: Text(
             isPremium ? 'DEBUG: Premium ON' : 'DEBUG: Premium OFF',

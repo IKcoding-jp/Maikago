@@ -208,8 +208,7 @@ class RealtimeSyncManager {
     if (_cacheManager.isLocalMode) return; // ローカルモードではリトライしない
 
     if (_retryCount >= _maxRetries) {
-      DebugService()
-          .logWarning('リアルタイム同期: 最大リトライ回数($_maxRetries)に到達。手動再接続が必要');
+      DebugService().logWarning('リアルタイム同期: 最大リトライ回数($_maxRetries)に到達。手動再接続が必要');
       return;
     }
 

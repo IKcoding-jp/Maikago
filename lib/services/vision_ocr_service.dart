@@ -46,8 +46,7 @@ class VisionOcrService {
           OcrProgressStep.cloudFunctionsCall, 'Cloud Functionsで解析中...');
 
       // Cloud Functions経由でVision API + ChatGPTを呼び出し
-      final callable =
-          FirebaseFunctions.instance.httpsCallable('analyzeImage');
+      final callable = FirebaseFunctions.instance.httpsCallable('analyzeImage');
       final response = await callable.call<Map<String, dynamic>>({
         'imageUrl': b64,
         'timestamp': DateTime.now().toIso8601String(),
@@ -90,8 +89,7 @@ class VisionOcrService {
       return null;
     } catch (e) {
       if (e.toString().contains('TimeoutException')) {
-        onProgress?.call(
-            OcrProgressStep.failed, 'タイムアウト: ネットワーク接続を確認してください');
+        onProgress?.call(OcrProgressStep.failed, 'タイムアウト: ネットワーク接続を確認してください');
         DebugService().logError('Cloud Functionsタイムアウト');
       } else {
         onProgress?.call(OcrProgressStep.failed, 'ネットワークエラーが発生しました');
@@ -163,8 +161,8 @@ class VisionOcrService {
       if (bytes.length > 500000) {
         // 500KB以上の場合
         final optimizedBytes = img.encodeJpg(working, quality: quality);
-        DebugService().log(
-            '画像品質を最適化: ${bytes.length} → ${optimizedBytes.length} bytes');
+        DebugService()
+            .log('画像品質を最適化: ${bytes.length} → ${optimizedBytes.length} bytes');
         return optimizedBytes;
       }
 

@@ -50,8 +50,7 @@ class FakeOneTimePurchaseService extends ChangeNotifier
       ((_userPremiumStatus[_currentUserId] ?? false) || _isTrialActive);
 
   @override
-  bool get isPremiumPurchased =>
-      _userPremiumStatus[_currentUserId] ?? false;
+  bool get isPremiumPurchased => _userPremiumStatus[_currentUserId] ?? false;
 
   @override
   bool get isTrialActive => _isTrialActive;
@@ -316,8 +315,7 @@ void main() {
     test('開始日と終了日の差が指定日数', () {
       service.startTrial(7);
 
-      final diff =
-          service.trialEndDate!.difference(service.trialStartDate!);
+      final diff = service.trialEndDate!.difference(service.trialStartDate!);
       expect(diff.inDays, 7);
     });
 
@@ -405,8 +403,7 @@ void main() {
 
   group('purchaseProduct / restorePurchases', () {
     test('purchaseProductがfalseを返す（Fakeではストア不可）', () async {
-      final result =
-          await service.purchaseProduct(OneTimePurchase.premium);
+      final result = await service.purchaseProduct(OneTimePurchase.premium);
 
       expect(result, false);
     });

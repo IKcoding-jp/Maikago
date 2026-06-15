@@ -93,7 +93,8 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
       await service.restorePurchases();
 
       if (context.mounted) {
-        showSuccessSnackBar(context, '購入状態を復元しました', duration: const Duration(seconds: 2));
+        showSuccessSnackBar(context, '購入状態を復元しました',
+            duration: const Duration(seconds: 2));
       }
     } catch (e) {
       if (context.mounted) {

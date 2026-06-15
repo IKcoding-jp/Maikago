@@ -62,7 +62,9 @@ class _ItemRenameDialogState extends State<ItemRenameDialog> {
       content: TextField(
         controller: controller,
         maxLength: 100,
-        buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
+        buildCounter: (context,
+                {required currentLength, required isFocused, maxLength}) =>
+            null,
         decoration: CommonDialog.textFieldDecoration(
           context,
           labelText: 'アイテム名',
@@ -72,7 +74,8 @@ class _ItemRenameDialogState extends State<ItemRenameDialog> {
       ),
       actions: [
         CommonDialog.cancelButton(context),
-        CommonDialog.primaryButton(context, label: '保存', onPressed: _handleSave),
+        CommonDialog.primaryButton(context,
+            label: '保存', onPressed: _handleSave),
       ],
     );
   }

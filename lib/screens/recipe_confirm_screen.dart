@@ -108,24 +108,36 @@ class _RecipeConfirmScreenState extends State<RecipeConfirmScreen> {
             TextField(
               controller: nameController,
               maxLength: 100,
-              buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
-              decoration: CommonDialog.textFieldDecoration(context, labelText: '材料名'),
+              buildCounter: (context,
+                      {required currentLength,
+                      required isFocused,
+                      maxLength}) =>
+                  null,
+              decoration:
+                  CommonDialog.textFieldDecoration(context, labelText: '材料名'),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: qtyController,
               maxLength: 50,
-              buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
-              decoration: CommonDialog.textFieldDecoration(context, labelText: '分量'),
+              buildCounter: (context,
+                      {required currentLength,
+                      required isFocused,
+                      maxLength}) =>
+                  null,
+              decoration:
+                  CommonDialog.textFieldDecoration(context, labelText: '分量'),
             ),
           ],
         ),
         actions: [
           CommonDialog.cancelButton(context),
-          CommonDialog.primaryButton(context, label: '保存', onPressed: () => context.pop({
-            'name': nameController.text,
-            'quantity': qtyController.text,
-          })),
+          CommonDialog.primaryButton(context,
+              label: '保存',
+              onPressed: () => context.pop({
+                    'name': nameController.text,
+                    'quantity': qtyController.text,
+                  })),
         ],
       ),
     );
@@ -253,7 +265,11 @@ class _RecipeConfirmScreenState extends State<RecipeConfirmScreen> {
                 child: TextField(
                   controller: _titleController,
                   maxLength: 100,
-                  buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
+                  buildCounter: (context,
+                          {required currentLength,
+                          required isFocused,
+                          maxLength}) =>
+                      null,
                   decoration: const InputDecoration(
                     hintText: 'レシピの名称（例: 肉じゃが）',
                     isDense: true,
@@ -314,7 +330,9 @@ class _RecipeConfirmScreenState extends State<RecipeConfirmScreen> {
           const SizedBox(height: 8),
           Text(
             '※レシピ由来タグは追加後に表示されます',
-            style: TextStyle(fontSize: Theme.of(context).textTheme.bodySmall?.fontSize, color: Theme.of(context).subtextColor),
+            style: TextStyle(
+                fontSize: Theme.of(context).textTheme.bodySmall?.fontSize,
+                color: Theme.of(context).subtextColor),
           ),
         ],
       ),
@@ -340,14 +358,22 @@ class _RecipeConfirmScreenState extends State<RecipeConfirmScreen> {
                     Text(
                       ingredient.name,
                       style: TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: Theme.of(context).textTheme.bodyLarge?.fontSize),
+                          fontWeight: FontWeight.bold,
+                          fontSize:
+                              Theme.of(context).textTheme.bodyLarge?.fontSize),
                     ),
                     if (ingredient.quantity != null)
                       Text(ingredient.quantity!,
-                          style: TextStyle(color: Theme.of(context).subtextColor))
+                          style:
+                              TextStyle(color: Theme.of(context).subtextColor))
                     else
                       Text('分量が曖昧なため省略しました',
-                          style: TextStyle(fontSize: Theme.of(context).textTheme.bodySmall?.fontSize, color: AppColors.warning)),
+                          style: TextStyle(
+                              fontSize: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.fontSize,
+                              color: AppColors.warning)),
                   ],
                 ),
               ),
@@ -356,7 +382,8 @@ class _RecipeConfirmScreenState extends State<RecipeConfirmScreen> {
                   child: const Text('編集')),
               IconButton(
                   onPressed: () => _deleteIngredient(index),
-                  icon: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.error)),
+                  icon: Icon(Icons.delete_outline,
+                      color: Theme.of(context).colorScheme.error)),
             ],
           ),
           if (isIntegrateMode) ...[
@@ -395,14 +422,17 @@ class _RecipeConfirmScreenState extends State<RecipeConfirmScreen> {
                 padding: const EdgeInsets.only(top: 4),
                 child: Text(
                   '一致候補: 「${matched.name} ${matched.quantity}個（既存）」',
-                  style: TextStyle(fontSize: Theme.of(context).textTheme.bodySmall?.fontSize, color: Theme.of(context).colorScheme.primary),
+                  style: TextStyle(
+                      fontSize: Theme.of(context).textTheme.bodySmall?.fontSize,
+                      color: Theme.of(context).colorScheme.primary),
                 ),
               )
             else if (isIntegrateMode && matched == null)
               Padding(
                 padding: const EdgeInsets.only(top: 4),
                 child: Text('一致するアイテムが見つかりません',
-                    style: TextStyle(fontSize: 11, color: Theme.of(context).subtextColor)),
+                    style: TextStyle(
+                        fontSize: 11, color: Theme.of(context).subtextColor)),
               ),
           ],
         ],

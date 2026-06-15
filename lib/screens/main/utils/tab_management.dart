@@ -19,8 +19,7 @@ class TabManagement {
     required TickerProvider vsync,
     required VoidCallback onTabChanged,
   }) {
-    if (sortedShops.isEmpty ||
-        currentController.length == sortedShops.length) {
+    if (sortedShops.isEmpty || currentController.length == sortedShops.length) {
       return null;
     }
 
@@ -70,8 +69,7 @@ class TabManagement {
 
     final newIndex = tabController.index;
     final safeIndex = newIndex.clamp(0, sortedShops.length - 1);
-    final newTabId =
-        sortedShops.isNotEmpty ? sortedShops[safeIndex].id : null;
+    final newTabId = sortedShops.isNotEmpty ? sortedShops[safeIndex].id : null;
 
     SettingsPersistence.saveSelectedTabIndex(newIndex);
     if (newTabId != null) {

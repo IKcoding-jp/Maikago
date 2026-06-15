@@ -152,8 +152,7 @@ class _CalculatorScreenState extends State<CalculatorScreen>
         actions: [
           IconButton(
             icon: Icon(Icons.help_outline_rounded, color: _getIconColor()),
-            onPressed: () =>
-                showCalculatorHintDialog(context, widget.theme),
+            onPressed: () => showCalculatorHintDialog(context, widget.theme),
             tooltip: '使い方を見る',
           ),
         ],

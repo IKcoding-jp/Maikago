@@ -118,7 +118,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         '設定',
         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
               fontWeight: FontWeight.bold,
-              color: SettingsTheme.getOnPrimaryColor(settingsState.selectedTheme),
+              color:
+                  SettingsTheme.getOnPrimaryColor(settingsState.selectedTheme),
             ),
       ),
       backgroundColor:
@@ -149,8 +150,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             icon: Icons.settings,
             iconColor:
                 SettingsTheme.getPrimaryColor(settingsState.selectedTheme),
-            textColor:
-                SettingsTheme.getTextColor(settingsState.selectedTheme),
+            textColor: SettingsTheme.getTextColor(settingsState.selectedTheme),
           ),
           AccountCard(settingsState: settingsState),
           AppearanceSection(

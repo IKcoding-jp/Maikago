@@ -32,7 +32,6 @@ class ItemRepository {
   // --- アイテム追加 ---
 
   Future<void> addItem(ListItem item) async {
-
     // 重複チェック（IDが空の場合は新規追加として扱う）
     if (item.id.isNotEmpty) {
       final existingIndex =
@@ -71,8 +70,7 @@ class ItemRepository {
   }
 
   /// バックグラウンドでFirebase保存を実行（UIブロックを防ぐ）
-  Future<void> _performBackgroundSave(
-      ListItem newItem, int shopIndex) async {
+  Future<void> _performBackgroundSave(ListItem newItem, int shopIndex) async {
     try {
       // ローカルモードでない場合のみFirebaseに保存
       if (!_cacheManager.isLocalMode) {
@@ -160,8 +158,7 @@ class ItemRepository {
 
     // 楽観的更新：UIを即座に更新
     for (final item in items) {
-      final index =
-          _cacheManager.items.indexWhere((i) => i.id == item.id);
+      final index = _cacheManager.items.indexWhere((i) => i.id == item.id);
       if (index != -1) {
         _cacheManager.items[index] = item;
       }
@@ -235,8 +232,7 @@ class ItemRepository {
     }
 
     for (final item in updatedItems) {
-      final itemIndex =
-          _cacheManager.items.indexWhere((i) => i.id == item.id);
+      final itemIndex = _cacheManager.items.indexWhere((i) => i.id == item.id);
       if (itemIndex != -1) {
         _cacheManager.items[itemIndex] = item;
       }

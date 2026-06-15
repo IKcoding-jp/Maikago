@@ -49,9 +49,9 @@ class _ThemeSelectScreenState extends State<ThemeSelectScreen> {
             style: Theme.of(
               context,
             ).textTheme.bodyLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: onPrimary,
-            ),
+                  fontWeight: FontWeight.bold,
+                  color: onPrimary,
+                ),
           ),
           backgroundColor: primaryColor,
           foregroundColor: onPrimary,
@@ -119,16 +119,16 @@ class _ThemeSelectScreenState extends State<ThemeSelectScreen> {
                 Text(
                   'テーマを選択',
                   style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.onSurface,
-                      ),
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurface,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'お好みのカラーテーマを選んでください',
                   style: theme.textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurface.withValues(alpha: 0.70),
-                      ),
+                    color: colorScheme.onSurface.withValues(alpha: 0.70),
+                  ),
                 ),
               ],
             ),
@@ -154,8 +154,9 @@ class _ThemeSelectScreenState extends State<ThemeSelectScreen> {
         final themeEntry = themes[index];
         final isSelected = selectedTheme == themeEntry['key'] as String;
         // テーマのロック判定: サブスクリプションに基づく（選択時にチェック）
-        final isLocked = !context.read<OneTimePurchaseService>().isPremiumUnlocked &&
-            themeEntry['key'] != 'pink';
+        final isLocked =
+            !context.read<OneTimePurchaseService>().isPremiumUnlocked &&
+                themeEntry['key'] != 'pink';
 
         return _buildThemeItem(
           context: context,
@@ -234,7 +235,9 @@ class _ThemeSelectScreenState extends State<ThemeSelectScreen> {
               : themeData.cardColor,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? primaryColor : colorScheme.outline.withValues(alpha: 0.31),
+            color: isSelected
+                ? primaryColor
+                : colorScheme.outline.withValues(alpha: 0.31),
             width: isSelected ? 2.5 : 1.5,
           ),
           boxShadow: isSelected
@@ -275,10 +278,9 @@ class _ThemeSelectScreenState extends State<ThemeSelectScreen> {
             Text(
               theme['label'] as String,
               style: themeData.textTheme.bodySmall?.copyWith(
-                    fontWeight:
-                        isSelected ? FontWeight.bold : FontWeight.normal,
-                    color: isSelected ? primaryColor : textColor,
-                  ),
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                color: isSelected ? primaryColor : textColor,
+              ),
               textAlign: TextAlign.center,
             ),
             if (isSelected) ...[
@@ -310,7 +312,8 @@ class _ThemeSelectScreenState extends State<ThemeSelectScreen> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.lock, color: colorScheme.onSurfaceVariant, size: 10),
+                    Icon(Icons.lock,
+                        color: colorScheme.onSurfaceVariant, size: 10),
                     const SizedBox(width: 2),
                     Text(
                       '制限中',

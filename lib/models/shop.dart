@@ -44,11 +44,10 @@ class Shop {
                 .toList() ??
             [],
         // デュアルリード: 新フィールド優先、旧フィールドにフォールバック
-        sharedTabGroupId: (json['sharedTabGroupId'] ?? json['sharedGroupId'])
-            ?.toString(),
+        sharedTabGroupId:
+            (json['sharedTabGroupId'] ?? json['sharedGroupId'])?.toString(),
         sharedTabGroupIcon:
-            (json['sharedTabGroupIcon'] ?? json['sharedGroupIcon'])
-                ?.toString(),
+            (json['sharedTabGroupIcon'] ?? json['sharedGroupIcon'])?.toString(),
       );
 
   factory Shop.fromMap(Map<String, dynamic> map) => Shop.fromJson(map);
