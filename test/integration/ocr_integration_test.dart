@@ -1,4 +1,6 @@
 @Tags(['integration'])
+library;
+
 // ignore_for_file: avoid_print
 import 'dart:convert';
 import 'dart:io';
@@ -15,17 +17,16 @@ const _region = 'us-central1';
 
 /// テストケース定義
 class OcrTestCase {
-  final String imagePath;
-  final String description;
-  final String? expectedName;
-  final int? expectedPrice;
-
   const OcrTestCase({
     required this.imagePath,
     required this.description,
     this.expectedName,
     this.expectedPrice,
   });
+  final String imagePath;
+  final String description;
+  final String? expectedName;
+  final int? expectedPrice;
 }
 
 /// Firebase Auth REST API でメール/パスワード認証してIDトークンを取得
@@ -44,8 +45,9 @@ Future<String> _signInWithEmailPassword(String email, String password) async {
     }),
   );
   if (response.statusCode != 200) {
-    final body = json.decode(response.body);
-    final message = body['error']?['message'] ?? response.body;
+    final body = json.decode(response.body) as Map<String, dynamic>;
+    final errorObj = body['error'] as Map<String, dynamic>?;
+    final message = errorObj?['message'] as String? ?? response.body;
     throw Exception('Firebase Auth サインイン失敗: $message');
   }
   final body = json.decode(response.body) as Map<String, dynamic>;
