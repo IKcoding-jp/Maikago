@@ -257,5 +257,87 @@ void main() {
         expect(item.priceWithTax, 295);
       });
     });
+
+    // Issue #157: discount/price/quantity の入力値バリデーション
+    group('入力値バリデーション（Issue #157）', () {
+      group('コンストラクタで範囲補正される', () {
+        test('discountが1.0を超える場合は1.0に補正される', () {
+          final item = createSampleItem(discount: 1.5);
+          expect(item.discount, 1.0);
+        });
+
+        test('discountが0.0未満の場合は0.0に補正される', () {
+          final item = createSampleItem(discount: -0.2);
+          expect(item.discount, 0.0);
+        });
+
+        test('priceが負数の場合は0に補正される', () {
+          final item = createSampleItem(price: -100);
+          expect(item.price, 0);
+        });
+
+        test('quantityが負数の場合は0に補正される', () {
+          final item = createSampleItem(quantity: -5);
+          expect(item.quantity, 0);
+        });
+
+        test('正常範囲の値はそのまま保持される', () {
+          final item = createSampleItem(discount: 0.3, price: 200, quantity: 2);
+          expect(item.discount, 0.3);
+          expect(item.price, 200);
+          expect(item.quantity, 2);
+        });
+      });
+
+      group('fromJsonで範囲補正される', () {
+        ListItem restore(Map<String, dynamic> overrides) => ListItem.fromJson({
+              'id': '1',
+              'name': 'テスト',
+              'quantity': 1,
+              'price': 100,
+              'shopId': '0',
+              ...overrides,
+            });
+
+        test('discount=1.5（150%引き）は1.0に補正される', () {
+          expect(restore({'discount': 1.5}).discount, 1.0);
+        });
+
+        test('discount=-0.2は0.0に補正される', () {
+          expect(restore({'discount': -0.2}).discount, 0.0);
+        });
+
+        test('price=-100は0に補正される', () {
+          expect(restore({'price': -100}).price, 0);
+        });
+
+        test('quantity=-5は0に補正される', () {
+          expect(restore({'quantity': -5}).quantity, 0);
+        });
+      });
+
+      group('copyWithで範囲補正される', () {
+        test('範囲外のdiscountを渡すと補正される', () {
+          final item = createSampleItem(discount: 0.1);
+          expect(item.copyWith(discount: 2.0).discount, 1.0);
+          expect(item.copyWith(discount: -1.0).discount, 0.0);
+        });
+
+        test('範囲外のprice/quantityを渡すと補正される', () {
+          final item = createSampleItem();
+          expect(item.copyWith(price: -50).price, 0);
+          expect(item.copyWith(quantity: -3).quantity, 0);
+        });
+      });
+
+      test('補正後の値は合計金額が負数にならない', () {
+        // 壊れた割引率1.5でも (1 - clamp(1.5)) = 0 となり負数にならない
+        final item = createSampleItem(price: 500, quantity: 2, discount: 1.5);
+        final total =
+            (item.price * item.quantity * (1 - item.discount)).round();
+        expect(total, greaterThanOrEqualTo(0));
+        expect(total, 0);
+      });
+    });
   });
 }

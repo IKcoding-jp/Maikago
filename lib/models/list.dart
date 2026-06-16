@@ -1,11 +1,14 @@
 // リスト項目（数量・単価・割引・チェック状態）
 class ListItem {
+  // Issue #157: discount/price/quantity を範囲補正する唯一の入口。
+  // fromJson・copyWith・直接生成のすべてがこのコンストラクタを通るため、
+  // ここで正規化すれば全経路で不正値（負数・100%超割引）を防げる。
   ListItem({
     required this.id,
     required this.name,
-    required this.quantity,
-    required this.price,
-    this.discount = 0.0,
+    required int quantity,
+    required int price,
+    double discount = 0.0,
     this.isChecked = false,
     required this.shopId,
     this.createdAt,
@@ -18,7 +21,9 @@ class ListItem {
     this.sortOrder = 0,
     this.isRecipeOrigin = false,
     this.recipeName,
-  });
+  })  : quantity = quantity < 0 ? 0 : quantity,
+        price = price < 0 ? 0 : price,
+        discount = discount.clamp(0.0, 1.0);
 
   factory ListItem.fromJson(Map<String, dynamic> json) => ListItem(
         id: json['id']?.toString() ?? '',

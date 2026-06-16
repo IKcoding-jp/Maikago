@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:maikago/models/list.dart';
+import 'package:maikago/utils/input_formatters.dart';
 import 'package:maikago/widgets/common_dialog.dart';
 
 /// リスト編集ダイアログ
@@ -251,6 +252,8 @@ class _ListItemEditDialogState extends State<ListItemEditDialog> {
                     }
                     return newValue;
                   }),
+                  // Issue #157: 割引率は100%まで（150%引き等を入力させない）
+                  maxValueFormatter(100),
                 ],
                 onChanged: _updateDiscount,
               ),
