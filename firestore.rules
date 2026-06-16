@@ -67,19 +67,14 @@ service cloud.firestore {
         request.resource.data.ownerId == request.auth.uid &&
         request.resource.data.ownerId is string;
 
-      // 読み取り：メンバーまたはオーナーのみ
-      allow read: if request.auth != null && (
-        resource.data.ownerId == request.auth.uid ||
-        (resource.data.members != null && resource.data.members[request.auth.uid] != null) ||
-        (resource.data.members != null && isMemberInArray(resource.data.members, request.auth.uid))
-      );
+      // 読み取り：メンバーまたはオーナーのみ（人数無制限の memberIds 判定に集約）
+      allow read: if request.auth != null &&
+        isFamilyMember(resource.data, request.auth.uid);
 
       // 更新：メンバー、オーナー、または新規メンバー追加時
       allow update: if request.auth != null && (
-        // 既存メンバーまたはオーナー
-        (resource.data.members != null && resource.data.members[request.auth.uid] != null) ||
-        resource.data.ownerId == request.auth.uid ||
-        (resource.data.members != null && isMemberInArray(resource.data.members, request.auth.uid)) ||
+        // 既存メンバーまたはオーナー（人数無制限の memberIds 判定に集約）
+        isFamilyMember(resource.data, request.auth.uid) ||
         // 新しいメンバーが自分自身を追加する場合（招待承認時）
         // members配列のサイズが1つ増え、新しいメンバーが自分自身である場合
         (request.resource.data.members.size() == resource.data.members.size() + 1 &&
@@ -95,10 +90,26 @@ service cloud.firestore {
       allow delete: if request.auth != null &&
         resource.data.ownerId == request.auth.uid;
 
-      // ヘルパー関数：メンバー配列にユーザーが存在するかチェック
-      // TODO: membersフィールドのデータ構造がArray（Mapのリスト）とMap（UIDをキー）で不統一。
-      // 将来的にMap形式に統一し、この関数を不要にすることを推奨。
-      // 現在は既存データとの互換性のため、Arrayチェック（最大10人）とMapチェックの両方を維持。
+      // ヘルパー関数：ファミリーのメンバー（またはオーナー）かどうかを判定する。
+      // 判定の優先順位：
+      //   1. オーナー
+      //   2. memberIds（UID文字列の配列）に含まれる   ← 人数無制限。Issue #162 の本命
+      //   3. members が Map（UIDキー）形式            ← 人数無制限
+      //   4. members が Array（Mapのリスト）形式       ← 旧データ互換。最大10人（isMemberInArray）
+      // memberIds を持つ新しいデータは人数無制限で判定でき、
+      // memberIds を持たない旧データは従来どおり 3/4 のフォールバックで判定する（回帰なし）。
+      // Map.get(key, default) でフィールド欠如時のエラーを防ぎ、is list / is map で型不一致エラーを防ぐ。
+      function isFamilyMember(data, userId) {
+        return data.ownerId == userId ||
+          (data.get('memberIds', []) is list && userId in data.get('memberIds', [])) ||
+          (data.get('members', []) is map && data.get('members', [])[userId] != null) ||
+          (data.get('members', []) is list && isMemberInArray(data.get('members', []), userId));
+      }
+
+      // ヘルパー関数：メンバー配列（Mapのリスト）にユーザーが存在するかチェック（旧データ互換・最大10人）
+      // TODO: Issue #162 — 旧 Array 形式の上限10人はこの関数の構造的制約。
+      // 新データは memberIds（UID配列）で人数無制限に判定する（isFamilyMember 参照）。
+      // 旧データが一掃されたらこの関数は削除可能。
       function isMemberInArray(members, userId) {
         return members.size() > 0 && (
           (members.size() > 0 && members[0] is map && members[0].id == userId) ||
