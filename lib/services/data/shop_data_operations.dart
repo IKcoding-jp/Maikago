@@ -176,6 +176,21 @@ mixin ShopDataOperations on DataServiceBase {
     }
   }
 
+  /// Firestore ドキュメントを安全に [Shop] へ変換する（Issue #164）。
+  ///
+  /// 壊れたドキュメント1件で一覧全体を道連れにしないため、復元に失敗した
+  /// ドキュメントはログを残して null を返し、呼び出し側でスキップする。
+  Shop? _shopFromDocSafe(QueryDocumentSnapshot<Map<String, dynamic>> doc) {
+    try {
+      final data = doc.data();
+      data['id'] = doc.id;
+      return Shop.fromMap(data);
+    } catch (e) {
+      DebugService().logError('ショップ復元エラー（スキップ） id=${doc.id}: $e');
+      return null;
+    }
+  }
+
   /// すべてのショップを取得（リアルタイム購読）
   Stream<List<Shop>> getShops({bool isAnonymous = false}) {
     // Firebaseが利用できない場合は空のストリームを返す
@@ -187,11 +202,7 @@ mixin ShopDataOperations on DataServiceBase {
             .orderBy('createdAt', descending: true)
             .snapshots()
             .map((snapshot) {
-          return snapshot.docs.map((doc) {
-            final data = doc.data();
-            data['id'] = doc.id;
-            return Shop.fromMap(data);
-          }).toList();
+          return snapshot.docs.map(_shopFromDocSafe).whereType<Shop>().toList();
         }),
       );
     } else {
@@ -199,11 +210,7 @@ mixin ShopDataOperations on DataServiceBase {
           .orderBy('createdAt', descending: true)
           .snapshots()
           .map((snapshot) {
-        return snapshot.docs.map((doc) {
-          final data = doc.data();
-          data['id'] = doc.id;
-          return Shop.fromMap(data);
-        }).toList();
+        return snapshot.docs.map(_shopFromDocSafe).whereType<Shop>().toList();
       });
     }
   }
@@ -239,9 +246,9 @@ mixin ShopDataOperations on DataServiceBase {
       final Map<String, Shop> uniqueShopsMap = {};
 
       for (final doc in snapshot.docs) {
-        final data = doc.data();
-        data['id'] = doc.id;
-        final shop = Shop.fromMap(data);
+        final shop = _shopFromDocSafe(doc);
+        // 壊れたドキュメントはスキップし、他のショップは読み込む（Issue #164）
+        if (shop == null) continue;
 
         // 同じIDのショップが既に存在する場合は、より新しい方を保持
         if (uniqueShopsMap.containsKey(shop.id)) {

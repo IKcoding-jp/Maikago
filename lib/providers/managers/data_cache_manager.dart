@@ -8,6 +8,27 @@ import 'package:maikago/providers/data_provider_state.dart';
 import 'package:maikago/services/debug_service.dart';
 import 'package:maikago/services/settings_persistence.dart';
 
+/// JSON配列を要素単位で防御的にパースする（Issue #164）。
+///
+/// null・非 Map 要素は除去し、復元に失敗した1件はスキップ+ログする。
+/// 壊れた1件でローカルデータ全体を失わないようにするため。
+List<T> _parseJsonListSafe<T>(
+  List<dynamic> rawList,
+  T Function(Map<String, dynamic>) fromJson,
+  String label,
+) {
+  final result = <T>[];
+  for (final e in rawList) {
+    if (e is! Map) continue;
+    try {
+      result.add(fromJson(Map<String, dynamic>.from(e)));
+    } catch (error) {
+      DebugService().logError('$label 復元エラー（スキップ）: $error');
+    }
+  }
+  return result;
+}
+
 /// データのインメモリキャッシュとロードを管理するクラス。
 /// - items/shopsの保持
 /// - キャッシュTTL管理（5分）
@@ -112,17 +133,13 @@ class DataCacheManager {
       final itemsJson = await SettingsPersistence.loadGuestItems();
       if (itemsJson != null) {
         final List<dynamic> itemsList = json.decode(itemsJson);
-        _items = itemsList
-            .map((e) => ListItem.fromMap(Map<String, dynamic>.from(e)))
-            .toList();
+        _items = _parseJsonListSafe(itemsList, ListItem.fromMap, 'ゲストアイテム');
       }
 
       final shopsJson = await SettingsPersistence.loadGuestShops();
       if (shopsJson != null) {
         final List<dynamic> shopsList = json.decode(shopsJson);
-        _shops = shopsList
-            .map((e) => Shop.fromMap(Map<String, dynamic>.from(e)))
-            .toList();
+        _shops = _parseJsonListSafe(shopsList, Shop.fromMap, 'ゲストショップ');
       }
 
       DebugService().logInfo(
@@ -143,15 +160,14 @@ class DataCacheManager {
       final itemsJson = await SettingsPersistence.loadGuestItems();
       if (itemsJson != null && itemsJson.isNotEmpty) {
         final List<dynamic> itemsList = json.decode(itemsJson);
-        items.addAll(itemsList
-            .map((e) => ListItem.fromMap(Map<String, dynamic>.from(e))));
+        items
+            .addAll(_parseJsonListSafe(itemsList, ListItem.fromMap, 'ゲストアイテム'));
       }
 
       final shopsJson = await SettingsPersistence.loadGuestShops();
       if (shopsJson != null && shopsJson.isNotEmpty) {
         final List<dynamic> shopsList = json.decode(shopsJson);
-        shops.addAll(
-            shopsList.map((e) => Shop.fromMap(Map<String, dynamic>.from(e))));
+        shops.addAll(_parseJsonListSafe(shopsList, Shop.fromMap, 'ゲストショップ'));
       }
     } catch (e) {
       DebugService().logError('ゲストデータ読み取りエラー: $e');
