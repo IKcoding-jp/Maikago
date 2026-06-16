@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -233,6 +235,7 @@ GoRouter createAppRouter(AuthProvider authProvider) {
       // --- カメラ・OCR ---
       GoRoute(
         path: '/camera',
+        redirect: (context, state) => kIsWeb ? '/' : null,
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>?;
           return CameraScreen(

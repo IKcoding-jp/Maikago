@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -260,54 +261,56 @@ class _BottomSummaryActionsState extends State<BottomSummaryActions> {
           ),
         ),
         const SizedBox(width: 12),
-        // カメラで追加ボタン（残り回数バッジ付き）
-        Consumer<FeatureAccessControl>(
-          builder: (context, featureControl, _) {
-            return Stack(
-              clipBehavior: Clip.none,
-              children: [
-                ElevatedButton(
-                  onPressed: _onImageAnalyzePressed,
-                  style: ElevatedButton.styleFrom(
-                    shape: const CircleBorder(),
-                    backgroundColor: colorScheme.primaryContainer,
-                    foregroundColor: colorScheme.onPrimaryContainer,
-                    elevation: 2,
-                    padding: const EdgeInsets.all(12),
-                    minimumSize: const Size(48, 48),
+        // カメラで追加ボタン（Web では不可のため非表示）
+        if (!kIsWeb) ...[
+          Consumer<FeatureAccessControl>(
+            builder: (context, featureControl, _) {
+              return Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  ElevatedButton(
+                    onPressed: _onImageAnalyzePressed,
+                    style: ElevatedButton.styleFrom(
+                      shape: const CircleBorder(),
+                      backgroundColor: colorScheme.primaryContainer,
+                      foregroundColor: colorScheme.onPrimaryContainer,
+                      elevation: 2,
+                      padding: const EdgeInsets.all(12),
+                      minimumSize: const Size(48, 48),
+                    ),
+                    child: const Icon(Icons.camera_alt_outlined, size: 24),
                   ),
-                  child: const Icon(Icons.camera_alt_outlined, size: 24),
-                ),
-                if (!featureControl.isPremiumUnlocked)
-                  Positioned(
-                    top: -6,
-                    right: -8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: featureControl.canUseOcr()
-                            ? colorScheme.primary
-                            : colorScheme.error,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        '${featureControl.ocrRemainingCount}',
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: colorScheme.onPrimary,
-                          fontWeight: FontWeight.bold,
+                  if (!featureControl.isPremiumUnlocked)
+                    Positioned(
+                      top: -6,
+                      right: -8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: featureControl.canUseOcr()
+                              ? colorScheme.primary
+                              : colorScheme.error,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          '${featureControl.ocrRemainingCount}',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: colorScheme.onPrimary,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-              ],
-            );
-          },
-        ),
-        const SizedBox(width: 8),
+                ],
+              );
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
         // レシピから追加ボタン（アイコンのみ）
         ElevatedButton(
           onPressed: _onRecipeImportPressed,
