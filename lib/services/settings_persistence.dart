@@ -18,6 +18,12 @@ class SettingsPersistence {
   static const String _strikethroughKey = 'strikethrough_on_completed_items';
   static const String _coachMarkCompletedKey = 'coach_mark_completed';
 
+  // ゲスト→ログイン移行の進捗（途中失敗からのリトライ・重複防止用）
+  // 元のゲストショップID → クラウドショップID のマップ（JSON）
+  static const String _migrationShopMapKey = 'guest_migration_shop_map';
+  // 移行済みアイテムの元ゲストID一覧（JSON配列）
+  static const String _migrationItemIdsKey = 'guest_migration_item_ids';
+
   // ── ジェネリックヘルパー ──────────────────────────────────
 
   /// SharedPreferencesに値を保存する汎用ヘルパー
@@ -324,6 +330,81 @@ class SettingsPersistence {
       ]);
     } catch (e) {
       DebugService().logError('clearGuestData エラー: $e');
+    }
+  }
+
+  // ── ゲスト→ログイン移行の進捗 ────────────────────────────
+  // 移行が途中失敗したときに「どこまで成功したか」を永続化し、
+  // 次回ログイン時の再試行で重複作成を防ぐために使う（Issue #154）。
+
+  /// 移行進捗を保存する。
+  ///
+  /// [shopIdMap] は「元ゲストショップID → クラウドショップID」のマップ。
+  /// [migratedItemIds] は移行済みアイテムの元ゲストID集合。
+  static Future<void> saveMigrationProgress(
+    Map<String, String> shopIdMap,
+    Set<String> migratedItemIds,
+  ) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await Future.wait([
+        prefs.setString(_migrationShopMapKey, jsonEncode(shopIdMap)),
+        prefs.setString(
+            _migrationItemIdsKey, jsonEncode(migratedItemIds.toList())),
+      ]);
+    } catch (e) {
+      DebugService().logError('saveMigrationProgress エラー: $e');
+    }
+  }
+
+  /// 移行進捗を読み込む。
+  ///
+  /// 戻り値は (shopIdMap, migratedItemIds) のレコード。
+  /// 進捗が無い・壊れている場合は空のマップ／集合を返す。
+  static Future<(Map<String, String>, Set<String>)>
+      loadMigrationProgress() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+
+      final shopMap = <String, String>{};
+      final shopMapJson = prefs.getString(_migrationShopMapKey);
+      if (shopMapJson != null && shopMapJson.isNotEmpty) {
+        final decoded = jsonDecode(shopMapJson);
+        if (decoded is Map) {
+          decoded.forEach((key, value) {
+            shopMap[key.toString()] = value.toString();
+          });
+        }
+      }
+
+      final itemIds = <String>{};
+      final itemIdsJson = prefs.getString(_migrationItemIdsKey);
+      if (itemIdsJson != null && itemIdsJson.isNotEmpty) {
+        final decoded = jsonDecode(itemIdsJson);
+        if (decoded is List) {
+          for (final id in decoded) {
+            itemIds.add(id.toString());
+          }
+        }
+      }
+
+      return (shopMap, itemIds);
+    } catch (e) {
+      DebugService().logError('loadMigrationProgress エラー: $e');
+      return (<String, String>{}, <String>{});
+    }
+  }
+
+  /// 移行進捗をクリアする（全件成功して移行が完了したときに呼ぶ）。
+  static Future<void> clearMigrationProgress() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await Future.wait([
+        prefs.remove(_migrationShopMapKey),
+        prefs.remove(_migrationItemIdsKey),
+      ]);
+    } catch (e) {
+      DebugService().logError('clearMigrationProgress エラー: $e');
     }
   }
 

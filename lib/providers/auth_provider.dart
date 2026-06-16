@@ -9,6 +9,7 @@ import 'package:maikago/services/one_time_purchase_service.dart';
 import 'package:maikago/services/feature_access_control.dart';
 import 'package:maikago/services/debug_service.dart';
 import 'package:maikago/services/settings_persistence.dart';
+import 'package:maikago/models/migration_result.dart';
 
 /// 認証状態の Provider。
 /// - 初期化時に現在ユーザー/監視をセットアップ
@@ -41,7 +42,11 @@ class AuthProvider extends ChangeNotifier {
   bool _isGuestMode = false;
 
   /// ゲスト→ログイン時のデータマイグレーションコールバック（DataProviderから設定）
-  Future<void> Function()? _onGuestDataMigration;
+  Future<MigrationResult> Function()? _onGuestDataMigration;
+
+  /// 直近のゲストデータ移行結果（UI がログイン後に通知判断するために参照）。
+  /// 一度参照したら [consumeLastMigrationResult] でクリアする。
+  MigrationResult? _lastMigrationResult;
 
   /// 画面表示制御用のローディングフラグ（初期化完了まで true）
   bool _isLoading = true; // 初期化中はtrueに変更
@@ -162,8 +167,17 @@ class AuthProvider extends ChangeNotifier {
 
   /// ゲスト→ログイン時のデータマイグレーションコールバックを設定
   /// （DataProviderのsetAuthProviderから呼ばれる）
-  void setGuestDataMigrationCallback(Future<void> Function() callback) {
+  void setGuestDataMigrationCallback(
+      Future<MigrationResult> Function() callback) {
     _onGuestDataMigration = callback;
+  }
+
+  /// 直近の移行結果を取り出してクリアする（UI 通知用、二重通知防止）。
+  /// 移行が走らなかった場合は null を返す。
+  MigrationResult? consumeLastMigrationResult() {
+    final result = _lastMigrationResult;
+    _lastMigrationResult = null;
+    return result;
   }
 
   /// ゲストモードに入る（ログインせずにアプリを使用）
@@ -190,10 +204,14 @@ class AuthProvider extends ChangeNotifier {
       if (wasGuestMode && _onGuestDataMigration != null) {
         try {
           DebugService().logInfo('ゲストデータのマイグレーション開始');
-          await _onGuestDataMigration!();
+          // 移行結果を保持し、UI 側が consumeLastMigrationResult() で
+          // 取り出して成功/一部失敗を通知できるようにする
+          _lastMigrationResult = await _onGuestDataMigration!();
         } catch (e) {
-          // マイグレーション失敗してもログイン自体は成功させる
+          // マイグレーション失敗してもログイン自体は成功させる。
+          // 例外時は詳細不明だが「失敗あり」として記録し、UI に通知させる。
           DebugService().logWarning('ゲストデータのマイグレーション失敗（ログインは継続）: $e');
+          _lastMigrationResult = const MigrationResult(failedShops: 1);
         }
       }
 

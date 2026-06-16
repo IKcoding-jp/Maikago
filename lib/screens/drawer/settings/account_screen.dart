@@ -239,12 +239,24 @@ class AccountScreen extends StatelessWidget {
 
   Future<void> _handleGoogleSignIn(BuildContext context) async {
     try {
-      final result = await context.read<AuthProvider>().signInWithGoogle();
+      final authProvider = context.read<AuthProvider>();
+      final result = await authProvider.signInWithGoogle();
       if (result == 'success' && context.mounted) {
+        // ゲストデータの移行結果を確認し、一部失敗していれば通知（Issue #154）。
+        final migration = authProvider.consumeLastMigrationResult();
         // ログイン成功時にデータを読み込み
         await context.read<DataProvider>().loadData();
         if (context.mounted) {
-          showSuccessSnackBar(context, 'ログインしました');
+          if (migration != null && migration.hasFailures) {
+            showWarningSnackBar(
+              context,
+              'お買い物リストの一部をクラウドに保存できませんでした。'
+              'データは端末に残っており、次回アプリ起動時に自動で再試行します。',
+              duration: const Duration(seconds: 6),
+            );
+          } else {
+            showSuccessSnackBar(context, 'ログインしました');
+          }
         }
       }
     } catch (e) {
