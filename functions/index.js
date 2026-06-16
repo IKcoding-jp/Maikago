@@ -270,9 +270,19 @@ exports.applyFamilyPlanToGroup = onDocumentCreated(
     if (!familyData) return null;
 
     const members = familyData.members || [];
+    // Issue #162: Firestoreルールの人数無制限メンバー判定（isFamilyMember）のため、
+    // UID文字列の配列 memberIds をファミリードキュメントに付与する。
+    // これにより11人目以降のメンバーも共有データを読めるようになる。
+    // 壊れた1件（null要素・id欠如）で関数全体が落ちないよう、要素単位で防御する。
+    const memberIds = members.filter((m) => m && m.id).map((m) => m.id);
     const batch = admin.firestore().batch();
 
     try {
+      // ファミリードキュメント自身に memberIds を書き戻す（既存メンバー配列はそのまま温存）
+      if (event.data?.ref) {
+        batch.set(event.data.ref, { memberIds }, { merge: true });
+      }
+
       for (const m of members) {
         const uid = m.id;
         if (!uid) continue;
@@ -281,7 +291,7 @@ exports.applyFamilyPlanToGroup = onDocumentCreated(
           planType: 'family',
           isActive: true,
           expiryDate: null,
-          familyMembers: members.map(x => x.id),
+          familyMembers: memberIds,
           updatedAt: admin.firestore.FieldValue.serverTimestamp(),
         }, { merge: true });
       }
