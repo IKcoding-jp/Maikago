@@ -6,6 +6,7 @@ import 'package:maikago/providers/data_provider.dart';
 import 'package:maikago/models/list.dart';
 import 'package:maikago/models/shop.dart';
 import 'package:maikago/services/settings_persistence.dart';
+import 'package:maikago/utils/calculation_utils.dart';
 import 'package:maikago/utils/input_formatters.dart';
 import 'package:maikago/widgets/common_dialog.dart';
 import 'package:go_router/go_router.dart';
@@ -78,7 +79,11 @@ class _ItemEditDialogState extends State<ItemEditDialog> {
     final price = int.tryParse(priceController.text) ?? 0;
     final qty = int.tryParse(qtyController.text) ?? 1;
     final discountPercent = int.tryParse(discountController.text) ?? 0;
-    return (price * qty * (1 - discountPercent / 100.0)).round();
+    return calcItemTotalRaw(
+      price: price,
+      quantity: qty,
+      discount: discountPercent / 100.0,
+    );
   }
 
   Future<void> _handleSave() async {

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'package:maikago/providers/data_provider.dart';
 import 'package:maikago/models/shop.dart';
+import 'package:maikago/utils/calculation_utils.dart';
 import 'package:maikago/services/settings_persistence.dart';
 import 'package:maikago/services/debug_service.dart';
 import 'package:maikago/screens/main/widgets/bottom_summary_actions.dart';
@@ -141,14 +142,7 @@ class _BottomSummaryWidgetState extends State<BottomSummaryWidget> {
   }
 
   // 現在のショップの即座の合計を計算
-  int _calculateCurrentShopTotal() {
-    int total = 0;
-    for (final item in widget.shop.items.where((e) => e.isChecked)) {
-      final price = (item.price * (1 - item.discount)).round();
-      total += price * item.quantity;
-    }
-    return total;
-  }
+  int _calculateCurrentShopTotal() => calcShopTotal(widget.shop);
 
   // 全てのサマリーデータを一度に取得
   Future<Map<String, dynamic>> _getAllSummaryData() async {
