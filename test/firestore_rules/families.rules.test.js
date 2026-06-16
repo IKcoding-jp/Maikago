@@ -100,6 +100,28 @@ describe('families の読み取り権限', () => {
     await assertFails(readAs('stranger', 'f-legacy-deny'));
   });
 
+  it('Map形式（UIDキー）の members でもメンバーは読める', async () => {
+    // members が「UIDをキーにした Map」形式のデータ。isFamilyMember の case 3 を検証。
+    await seedFamily('f-map', {
+      ownerId: 'owner',
+      members: { u0: { name: 'm0' }, u1: { name: 'm1' } },
+    });
+    await assertSucceeds(readAs('u1', 'f-map'));
+    await assertFails(readAs('stranger', 'f-map'));
+  });
+
+  it('壊れデータ: memberIds が配列でない（文字列）場合でも評価エラーで誤判定しない', async () => {
+    // is list ガードにより memberIds 判定はスキップされ、members 配列フォールバックで判定される。
+    const members = makeMembers(3); // u0..u2
+    await seedFamily('f-broken', {
+      ownerId: 'owner',
+      members,
+      memberIds: 'garbage', // 非配列の壊れた値
+    });
+    await assertSucceeds(readAs('u1', 'f-broken')); // members 配列で救済
+    await assertFails(readAs('stranger', 'f-broken'));
+  });
+
   it('境界: 旧配列形式のみ（memberIds なし・11人）では11人目は読めない（既知の制限の固定）', async () => {
     const members = makeMembers(11); // u0..u10
     await seedFamily('f-legacy-11', { ownerId: 'owner', members }); // memberIds なし

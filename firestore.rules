@@ -99,10 +99,16 @@ service cloud.firestore {
       // memberIds を持つ新しいデータは人数無制限で判定でき、
       // memberIds を持たない旧データは従来どおり 3/4 のフォールバックで判定する（回帰なし）。
       // Map.get(key, default) でフィールド欠如時のエラーを防ぎ、is list / is map で型不一致エラーを防ぐ。
+      //
+      // ⚠ memberIds は members から派生する非正規化フィールド。members を変更する書き込みは
+      //   memberIds も同時に更新しないとズレる（削除済みメンバーが memberIds 経由で読み続ける恐れ）。
+      //   現状 members を作成後に変更する経路はクライアント未実装のため未発生。
+      //   将来 add/remove を実装する際は、書き込み側または onDocumentUpdated トリガで
+      //   memberIds の同期を必ず用意すること（書き込み側の堅牢化は Issue #198 で追跡）。
       function isFamilyMember(data, userId) {
         return data.ownerId == userId ||
           (data.get('memberIds', []) is list && userId in data.get('memberIds', [])) ||
-          (data.get('members', []) is map && data.get('members', [])[userId] != null) ||
+          (data.get('members', {}) is map && userId in data.get('members', {})) ||
           (data.get('members', []) is list && isMemberInArray(data.get('members', []), userId));
       }
 

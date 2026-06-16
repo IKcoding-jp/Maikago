@@ -273,7 +273,8 @@ exports.applyFamilyPlanToGroup = onDocumentCreated(
     // Issue #162: Firestoreルールの人数無制限メンバー判定（isFamilyMember）のため、
     // UID文字列の配列 memberIds をファミリードキュメントに付与する。
     // これにより11人目以降のメンバーも共有データを読めるようになる。
-    const memberIds = members.map((m) => m.id).filter(Boolean);
+    // 壊れた1件（null要素・id欠如）で関数全体が落ちないよう、要素単位で防御する。
+    const memberIds = members.filter((m) => m && m.id).map((m) => m.id);
     const batch = admin.firestore().batch();
 
     try {
