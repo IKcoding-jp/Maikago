@@ -23,6 +23,10 @@ jobs:
       - run: flutter pub get
       - name: Create env.json placeholder
         run: echo '{}' > env.json
+      - name: Flutter analyze
+        run: flutter analyze --fatal-infos
+      - name: Flutter test
+        run: flutter test --exclude-tags=integration
       - name: Flutter build web
         run: |
           flutter build web \
