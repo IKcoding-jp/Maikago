@@ -112,6 +112,10 @@ workflows:
           storeFile=$CM_KEYSTORE_PATH
           EOF
 
+      - name: Create google-services.json
+        script: |
+          echo "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
+
       - name: Flutter analyze
         script: |
           flutter analyze --no-fatal-infos || true
