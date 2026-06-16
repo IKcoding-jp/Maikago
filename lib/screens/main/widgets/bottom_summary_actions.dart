@@ -19,6 +19,13 @@ import 'package:maikago/widgets/image_analysis_progress_dialog.dart';
 import 'package:maikago/widgets/premium_upgrade_dialog.dart';
 import 'package:maikago/widgets/recipe_import_bottom_sheet.dart';
 
+/// OCR保存結果から「使用回数を消費すべきか」を判定する。
+///
+/// Issue #155: 確認画面のキャンセル（`null`）・保存失敗では消費しない。
+/// 保存が成功した（＝ユーザーが値を得た）ときのみ `true` を返す。
+bool shouldConsumeOcrUsage(SaveResult? saveResult) =>
+    saveResult != null && saveResult.isSuccess;
+
 /// ボトムサマリーのアクションボタン群
 /// 予算変更・カメラ撮影・レシピ解析・リスト追加ボタンを含む
 class BottomSummaryActions extends StatefulWidget {
@@ -199,14 +206,13 @@ class _BottomSummaryActionsState extends State<BottomSummaryActions> {
 
       if (!mounted) return;
 
-      // 保存結果に応じてメッセージを表示
-      if (saveResult != null && saveResult.isSuccess) {
-        showSuccessSnackBar(context, saveResult.message,
+      // 保存成功時のみメッセージ表示とOCR使用回数の消費を行う。
+      // Issue #155: キャンセル・保存失敗ではカウントを増やさない。
+      if (shouldConsumeOcrUsage(saveResult)) {
+        showSuccessSnackBar(context, saveResult!.message,
             duration: const Duration(seconds: 2));
+        context.read<FeatureAccessControl>().incrementOcrUsage();
       }
-
-      // OCR成功時にカウンターを増加
-      context.read<FeatureAccessControl>().incrementOcrUsage();
     } catch (e) {
       DebugService().logError('値札画像処理エラー: $e');
       if (mounted) {
