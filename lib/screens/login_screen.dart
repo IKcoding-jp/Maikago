@@ -36,6 +36,17 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
 
       if (userCredential == 'success') {
+        // ゲストデータの移行結果を確認し、一部失敗していれば通知（Issue #154）。
+        // データは端末に残り、次回ログイン時に自動再試行される。
+        final migration = authProvider.consumeLastMigrationResult();
+        if (migration != null && migration.hasFailures) {
+          showWarningSnackBar(
+            context,
+            'お買い物リストの一部をクラウドに保存できませんでした。'
+            'データは端末に残っており、次回アプリ起動時に自動で再試行します。',
+            duration: const Duration(seconds: 6),
+          );
+        }
         widget.onLoginSuccess();
       } else if (userCredential == 'redirect') {
         // リダイレクト方式を使用（iOS PWA）

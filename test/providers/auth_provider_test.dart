@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:maikago/providers/auth_provider.dart';
+import 'package:maikago/models/migration_result.dart';
 import 'package:maikago/services/one_time_purchase_service.dart';
 import 'package:maikago/services/feature_access_control.dart';
 
@@ -184,6 +185,7 @@ void main() {
       var called = false;
       authProvider.setGuestDataMigrationCallback(() async {
         called = true;
+        return MigrationResult.empty;
       });
 
       // コールバックが設定されたことの間接確認

@@ -1,9 +1,9 @@
 // アプリの業務ロジック（一覧/編集/同期/共有合計）を集約し、UI層に通知
-import 'dart:async';
 import 'package:maikago/services/data_service.dart';
 import 'package:maikago/models/list.dart';
 import 'package:maikago/models/shop.dart';
 import 'package:maikago/models/sort_mode.dart';
+import 'package:maikago/models/migration_result.dart';
 import 'package:maikago/providers/auth_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:maikago/providers/data_provider_state.dart';
@@ -66,6 +66,9 @@ class DataProvider extends ChangeNotifier {
 
   bool _isLoading = false;
 
+  /// ゲストデータ移行の二重実行ガード（同時呼び出しで重複作成しないように）
+  bool _isMigrating = false;
+
   // --- 認証連携 ---
 
   void setAuthProvider(AuthProvider authProvider) {
@@ -89,7 +92,7 @@ class DataProvider extends ChangeNotifier {
         DebugService().logInfo('ログイン検出: データを完全にリセットして再読み込みします');
         if (!_isLoading) {
           _resetDataForLogin();
-          loadData();
+          _loadDataAndRecoverGuestData();
         }
       } else if (authProvider.isGuestMode) {
         DebugService().logInfo('ゲストモード検出: ローカルモードでデータを初期化');
@@ -106,11 +109,20 @@ class DataProvider extends ChangeNotifier {
     // 現在の認証状態に基づいてデータを読み込む
     if (authProvider.isLoggedIn && !authProvider.isLoading && !_isLoading) {
       _resetDataForLogin();
-      loadData();
+      _loadDataAndRecoverGuestData();
     } else if (authProvider.isGuestMode) {
       // アプリ起動時の復元: データクリアせずloadDataでローカルストレージから復元
       _initGuestMode(isRestoredSession: true);
     }
+  }
+
+  /// ログイン時のデータ読み込み後、移行し残したゲストデータがあれば自動救済する。
+  /// 残データが無ければ [retryPendingGuestMigration] は即座に終了する（Issue #154）。
+  void _loadDataAndRecoverGuestData() {
+    loadData().then((_) {
+      // 残ったゲストデータの再移行。失敗してもログインは継続する。
+      retryPendingGuestMigration();
+    });
   }
 
   void _resetDataForLogin() {
@@ -324,70 +336,151 @@ class DataProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// ゲストモードのローカルデータをFirestoreへマイグレーション
-  /// ログイン成功後、ゲストモード終了前に呼ばれる
-  Future<void> migrateGuestDataToCloud() async {
-    // 1. 現在のローカルデータをキャプチャ
-    final localShops = List<Shop>.from(_cacheManager.shops);
-    final localItems = List<ListItem>.from(_cacheManager.items);
+  /// ゲストモードのローカルデータをFirestoreへマイグレーション。
+  /// ログイン成功後、ゲストモード終了前に呼ばれる。
+  ///
+  /// 【Issue #154 の方針】
+  /// - 全件の保存成功を確認できた場合のみローカルのゲストデータをクリアする。
+  /// - 一部失敗時はローカルデータと移行進捗を残し、次回ログインで再試行する。
+  /// - 移行済みID（元ゲストID→クラウドID）の記録で再試行時の重複作成を防ぐ。
+  /// - 二重実行をガードする。
+  ///
+  /// 戻り値の [MigrationResult] で成功/一部失敗を呼び出し側（UI）に伝え、
+  /// 失敗時にユーザーへ通知できるようにする。
+  Future<MigrationResult> migrateGuestDataToCloud() {
+    return _guardedMigrate(() async {
+      // ゲストデータは SharedPreferences を正とする。
+      // ログイン処理中はキャッシュがリセットされる競合があり得るため、
+      // キャッシュではなく永続ストレージから移行対象を読み取る（Issue #154）。
+      final (localShops, localItems) =
+          await _cacheManager.readGuestDataFromStorage();
+      return _migrateData(localShops, localItems);
+    });
+  }
 
+  /// ログイン後、移行し残したゲストデータがあれば再移行する。
+  ///
+  /// ゲスト→ログイン移行が一部失敗したとき、ローカルに残ったデータを
+  /// 次回ログイン（アプリ起動）時に自動で救済するための入口（Issue #154）。
+  /// 残データが無ければ即座に空の結果を返すため、毎回のログインで呼んでも安全。
+  Future<MigrationResult> retryPendingGuestMigration() =>
+      migrateGuestDataToCloud();
+
+  /// 移行処理を二重実行ガードで包む共通ラッパー。
+  Future<MigrationResult> _guardedMigrate(
+      Future<MigrationResult> Function() body) async {
+    if (_isMigrating) {
+      DebugService().logWarning('マイグレーションが既に実行中のためスキップ');
+      return MigrationResult.empty;
+    }
+    _isMigrating = true;
+    try {
+      return await body();
+    } finally {
+      _isMigrating = false;
+    }
+  }
+
+  /// 渡されたショップ/アイテムを Firestore へ移行する中核処理。
+  /// 全件成功時のみゲストデータと移行進捗をクリアする。
+  Future<MigrationResult> _migrateData(
+      List<Shop> localShops, List<ListItem> localItems) async {
     if (localShops.isEmpty && localItems.isEmpty) {
-      return;
+      return MigrationResult.empty;
     }
 
     DebugService().logInfo(
         'マイグレーション開始: ショップ${localShops.length}件、アイテム${localItems.length}件');
 
-    // 2. ローカルモードをオフにしてFirestoreへの書き込みを有効化
+    // 2. これまでの移行進捗を読み込み（前回途中失敗分の再試行・重複防止）
+    final (shopIdMap, migratedItemIds) =
+        await SettingsPersistence.loadMigrationProgress();
+
+    // 3. ローカルモードをオフにしてFirestoreへの書き込みを有効化
     _cacheManager.setLocalMode(false);
     _state.shouldUseAnonymousSession = false;
 
-    try {
-      // 3. ショップをFirestoreに保存（デフォルトショップID '0' の競合を考慮）
-      for (final shop in localShops) {
+    var migratedShops = 0;
+    var migratedItems = 0;
+
+    // 4. ショップごとに保存し、紐づくアイテムを保存する
+    for (final shop in localShops) {
+      // 既に移行済みならクラウドIDを再利用、未移行なら新IDを採番。
+      // 新ID採番はクラウド既存データとの競合を回避するため。
+      var cloudShopId = shopIdMap[shop.id];
+
+      if (cloudShopId == null) {
+        cloudShopId = shop.id == '0'
+            ? '0' // デフォルトショップはID '0' のまま
+            : 'migrated_${shop.id}_${DateTime.now().millisecondsSinceEpoch}';
         try {
-          // 新しいIDでショップを作成（クラウドのデータとの競合を回避）
           final cloudShop = shop.copyWith(
-            id: shop.id == '0'
-                ? '0' // デフォルトショップはID '0' のまま
-                : 'migrated_${shop.id}_${DateTime.now().millisecondsSinceEpoch}',
+            id: cloudShopId,
             createdAt: shop.createdAt ?? DateTime.now(),
           );
-
-          await _dataService.saveShop(
-            cloudShop,
-            isAnonymous: false,
-          );
-
-          // 4. ショップに紐づくアイテムを保存（shopIdを更新）
-          final shopItems =
-              localItems.where((item) => item.shopId == shop.id).toList();
-          for (final item in shopItems) {
-            try {
-              final cloudItem = item.copyWith(
-                shopId: cloudShop.id,
-                createdAt: item.createdAt ?? DateTime.now(),
-              );
-              await _dataService.saveItem(
-                cloudItem,
-                isAnonymous: false,
-              );
-            } catch (e) {
-              DebugService().logError('アイテム移行失敗（スキップ）: ${item.name} - $e');
-            }
-          }
+          await _dataService.saveShop(cloudShop, isAnonymous: false);
+          shopIdMap[shop.id] = cloudShopId;
+          migratedShops++;
+          // 成功のたびに進捗を永続化（途中で落ちても記録を残す）
+          await SettingsPersistence.saveMigrationProgress(
+              shopIdMap, migratedItemIds);
         } catch (e) {
-          DebugService().logError('ショップ移行失敗（スキップ）: ${shop.name} - $e');
+          DebugService().logError('ショップ移行失敗: ${shop.name} - $e');
+          // ショップが作れないと配下アイテムも保存できないので次のショップへ。
+          // 失敗件数は末尾で「進捗に残っていないもの」として集計する。
+          continue;
         }
       }
 
-      // マイグレーション成功後、ローカルストレージのゲストデータをクリア
-      unawaited(SettingsPersistence.clearGuestData());
-      DebugService().logInfo('ゲストデータのFirestoreマイグレーション完了');
-    } catch (e) {
-      DebugService().logError('マイグレーション中にエラー: $e');
-      // マイグレーション失敗してもアプリは動作可能（データは失われる可能性あり）
+      // 5. ショップに紐づくアイテムを保存（移行済みはスキップ）
+      final shopItems =
+          localItems.where((item) => item.shopId == shop.id).toList();
+      for (final item in shopItems) {
+        if (migratedItemIds.contains(item.id)) {
+          continue; // 既に移行済み → 重複作成しない
+        }
+        try {
+          final cloudItem = item.copyWith(
+            shopId: cloudShopId,
+            createdAt: item.createdAt ?? DateTime.now(),
+          );
+          await _dataService.saveItem(cloudItem, isAnonymous: false);
+          migratedItemIds.add(item.id);
+          migratedItems++;
+          await SettingsPersistence.saveMigrationProgress(
+              shopIdMap, migratedItemIds);
+        } catch (e) {
+          DebugService().logError('アイテム移行失敗: ${item.name} - $e');
+        }
+      }
     }
+
+    // 6. 失敗件数は「移行進捗に残っていないもの」として集計する。
+    // こうすることで、保存できていないデータが1件でもあれば必ず失敗扱いになり、
+    // ローカルデータを誤って消すことがない（最優先原則: データを消さない）。
+    final failedShops =
+        localShops.where((s) => !shopIdMap.containsKey(s.id)).length;
+    final failedItems =
+        localItems.where((i) => !migratedItemIds.contains(i.id)).length;
+
+    final result = MigrationResult(
+      migratedShops: migratedShops,
+      migratedItems: migratedItems,
+      failedShops: failedShops,
+      failedItems: failedItems,
+    );
+
+    if (result.isComplete) {
+      // 全件成功したときのみローカルのゲストデータと進捗を破棄する
+      await SettingsPersistence.clearGuestData();
+      await SettingsPersistence.clearMigrationProgress();
+      DebugService().logInfo('ゲストデータのFirestoreマイグレーション完了: $result');
+    } else {
+      // 一部失敗：ローカルデータは残し、進捗を保持して次回ログインで再試行する
+      DebugService().logWarning('ゲストデータの移行が一部失敗（ローカルデータは保持）: $result');
+    }
+
+    return result;
   }
 
   void clearData() {

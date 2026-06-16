@@ -132,6 +132,33 @@ class DataCacheManager {
     }
   }
 
+  /// SharedPreferences に残っているゲストデータを、キャッシュを変更せずに読み取る。
+  ///
+  /// ログイン後の移行リトライ（Issue #154）で、クラウド読み込み済みのキャッシュを
+  /// 壊さずに「移行し残したゲストデータ」だけを取り出すために使う。
+  Future<(List<Shop>, List<ListItem>)> readGuestDataFromStorage() async {
+    final items = <ListItem>[];
+    final shops = <Shop>[];
+    try {
+      final itemsJson = await SettingsPersistence.loadGuestItems();
+      if (itemsJson != null && itemsJson.isNotEmpty) {
+        final List<dynamic> itemsList = json.decode(itemsJson);
+        items.addAll(itemsList
+            .map((e) => ListItem.fromMap(Map<String, dynamic>.from(e))));
+      }
+
+      final shopsJson = await SettingsPersistence.loadGuestShops();
+      if (shopsJson != null && shopsJson.isNotEmpty) {
+        final List<dynamic> shopsList = json.decode(shopsJson);
+        shops.addAll(
+            shopsList.map((e) => Shop.fromMap(Map<String, dynamic>.from(e))));
+      }
+    } catch (e) {
+      DebugService().logError('ゲストデータ読み取りエラー: $e');
+    }
+    return (shops, items);
+  }
+
   /// 現在のキャッシュをSharedPreferencesに永続化（ローカルモード時のみ）
   void _persistToLocalStorage() {
     if (!_isLocalMode) return;
