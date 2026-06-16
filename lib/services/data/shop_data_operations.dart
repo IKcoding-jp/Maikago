@@ -60,6 +60,68 @@ mixin ShopDataOperations on DataServiceBase {
     await collection.doc(shop.id).set(updateData, SetOptions(merge: true));
   }
 
+  /// 複数ショップを WriteBatch で一括更新する（Issue #159）。
+  ///
+  /// 共有タブのグループ化・解除のように複数ドキュメントをまとめて更新する場合、
+  /// 順次 `await updateShop()` だと途中失敗で「一部だけ書き込まれた」中途半端な
+  /// 状態が残る。WriteBatch なら **全件成功 or 全件失敗** が Firestore 側で保証される。
+  ///
+  /// 既存 [updateShop] と同じく null 値は [FieldValue.delete] に変換し、
+  /// `set(merge: true)` で「存在すれば更新、なければ作成」とする。
+  Future<void> updateShopsBatch(
+    List<Shop> shops, {
+    bool isAnonymous = false,
+  }) async {
+    // Firebaseが利用できない場合はスキップ
+    if (!isFirebaseAvailable) return;
+    if (shops.isEmpty) return;
+
+    CollectionReference<Map<String, dynamic>> collection;
+    if (isAnonymous) {
+      collection = await anonymousShopsCollection;
+    } else {
+      collection = userShopsCollection;
+    }
+
+    // WriteBatch の上限は 500 操作。共有タブのグループは小規模だが、
+    // 念のため 500 件ごとに分割してコミットする。
+    const int batchLimit = 500;
+    try {
+      for (var start = 0; start < shops.length; start += batchLimit) {
+        final end = (start + batchLimit < shops.length)
+            ? start + batchLimit
+            : shops.length;
+        final chunk = shops.sublist(start, end);
+
+        final batch = firestore.batch();
+        for (final shop in chunk) {
+          // null値を明示的に削除するためにFieldValue.delete()を使用
+          final updateData = <String, dynamic>{};
+          final shopMap = shop.toMap();
+          shopMap.forEach((key, value) {
+            if (value == null) {
+              updateData[key] = FieldValue.delete();
+            } else {
+              updateData[key] = value;
+            }
+          });
+          batch.set(
+            collection.doc(shop.id),
+            updateData,
+            SetOptions(merge: true),
+          );
+        }
+        await batch.commit();
+      }
+    } catch (e) {
+      if (e.toString().contains('permission-denied')) {
+        throw const PermissionDeniedError(
+            'Firebaseの権限エラーです。セキュリティルールを確認してください。');
+      }
+      rethrow;
+    }
+  }
+
   /// ショップを削除（存在しない場合は何もしない）
   Future<void> deleteShop(String shopId, {bool isAnonymous = false}) async {
     // Firebaseが利用できない場合はスキップ

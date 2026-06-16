@@ -197,6 +197,10 @@ class ShopRepository {
     );
 
     // 削除されたタブを他のタブのsharedTabsから削除
+    // Issue #159: 影響を受けたショップIDと更新前状態を記録する
+    // （IDは後のバッチ更新に、更新前状態は失敗時のロールバックに使う）
+    final affectedShopIds = <String>[];
+    final originalAffectedShops = <String, Shop>{};
     for (int i = 0; i < _cacheManager.shops.length; i++) {
       final shop = _cacheManager.shops[i];
       if (shop.sharedTabs.contains(shopId)) {
@@ -211,8 +215,10 @@ class ShopRepository {
           clearSharedTabGroupIcon: updatedSharedTabs.isEmpty,
         );
 
+        originalAffectedShops[shop.id] = shop;
         _cacheManager.shops[i] = updatedShop;
         pendingUpdates[shop.id] = DateTime.now();
+        affectedShopIds.add(updatedShop.id);
       }
     }
 
@@ -232,14 +238,19 @@ class ShopRepository {
           isAnonymous: _state.shouldUseAnonymousSession,
         );
 
-        // 更新された共有タブをFirestoreに保存
-        for (final shop in _cacheManager.shops) {
-          if (pendingUpdates.containsKey(shop.id)) {
-            await _dataService.updateShop(
-              shop,
-              isAnonymous: _state.shouldUseAnonymousSession,
-            );
-          }
+        // Issue #159: 参照を外した共有相手を WriteBatch でまとめて保存する
+        // （順次 await だと途中失敗で一部だけ更新される不整合が残るため）
+        final affectedShops = affectedShopIds
+            .map(
+                (id) => _cacheManager.shops.indexWhere((shop) => shop.id == id))
+            .where((index) => index != -1)
+            .map((index) => _cacheManager.shops[index])
+            .toList();
+        if (affectedShops.isNotEmpty) {
+          await _dataService.updateShopsBatch(
+            affectedShops,
+            isAnonymous: _state.shouldUseAnonymousSession,
+          );
         }
 
         _state.isSynced = true;
@@ -250,12 +261,17 @@ class ShopRepository {
         // エラーが発生した場合は削除を取り消し
         _cacheManager.addShopToCache(shopToDelete);
 
-        // 更新された共有タブの変更も取り消し
-        for (final shop in _cacheManager.shops) {
-          if (pendingUpdates.containsKey(shop.id)) {
-            pendingUpdates.remove(shop.id);
+        // Issue #159: 参照を外した共有相手も更新前の状態へ巻き戻す
+        for (final entry in originalAffectedShops.entries) {
+          final index =
+              _cacheManager.shops.indexWhere((shop) => shop.id == entry.key);
+          if (index != -1) {
+            _cacheManager.shops[index] = entry.value;
           }
+          pendingUpdates.remove(entry.key);
         }
+        // 削除対象自身の保留フラグも除去する
+        pendingUpdates.remove(shopId);
 
         // デフォルトショップの削除記録も取り消し
         if (shopId == '0') {

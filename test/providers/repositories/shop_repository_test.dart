@@ -5,6 +5,7 @@ import 'package:maikago/providers/repositories/shop_repository.dart';
 import 'package:maikago/providers/managers/data_cache_manager.dart';
 import 'package:maikago/providers/data_provider_state.dart';
 import 'package:maikago/models/sort_mode.dart';
+import 'package:maikago/models/shop.dart';
 import '../../helpers/test_helpers.dart';
 import '../../mocks.mocks.dart';
 
@@ -413,6 +414,94 @@ void main() {
 
       expect(cacheManager.shops.length, 1);
       expect(cacheManager.shops.first.id, 'shop1');
+    });
+
+    test('削除失敗時は共有相手のsharedTabsも更新前へ巻き戻る（Issue #159）', () async {
+      cacheManager.setLocalMode(false);
+      final target = createSampleShop(
+        id: 'shop1',
+        name: '削除対象',
+        sharedTabs: ['shop2'],
+        sharedTabGroupId: 'group1',
+      );
+      final other = createSampleShop(
+        id: 'shop2',
+        name: '共有相手',
+        sharedTabs: ['shop1'],
+        sharedTabGroupId: 'group1',
+      );
+      cacheManager.addShopToCache(target);
+      cacheManager.addShopToCache(other);
+
+      // ドキュメント削除自体が失敗するケース
+      when(mockDataService.deleteShop(
+        any,
+        isAnonymous: anyNamed('isAnonymous'),
+      )).thenThrow(Exception('Firebase error'));
+
+      try {
+        await repository.deleteShop('shop1');
+      } catch (_) {}
+
+      // 削除対象は復活し、共有相手の sharedTabs / groupId も元のまま
+      final restoredOther =
+          cacheManager.shops.firstWhere((s) => s.id == 'shop2');
+      expect(restoredOther.sharedTabs, ['shop1']);
+      expect(restoredOther.sharedTabGroupId, 'group1');
+      expect(repository.pendingUpdates.containsKey('shop2'), false);
+    });
+
+    test('影響を受ける複数の共有相手はバッチ1回でまとめて更新される（Issue #159）', () async {
+      cacheManager.setLocalMode(false);
+      // shop2, shop3 が削除対象 shop1 を共有相手に持つ
+      final target = createSampleShop(
+        id: 'shop1',
+        name: '削除対象',
+        sharedTabs: ['shop2', 'shop3'],
+        sharedTabGroupId: 'group1',
+      );
+      final other1 = createSampleShop(
+        id: 'shop2',
+        name: '共有相手2',
+        sharedTabs: ['shop1', 'shop3'],
+        sharedTabGroupId: 'group1',
+      );
+      final other2 = createSampleShop(
+        id: 'shop3',
+        name: '共有相手3',
+        sharedTabs: ['shop1', 'shop2'],
+        sharedTabGroupId: 'group1',
+      );
+      cacheManager.addShopToCache(target);
+      cacheManager.addShopToCache(other1);
+      cacheManager.addShopToCache(other2);
+
+      when(mockDataService.deleteShop(
+        any,
+        isAnonymous: anyNamed('isAnonymous'),
+      )).thenAnswer((_) async {});
+      when(mockDataService.updateShopsBatch(
+        any,
+        isAnonymous: anyNamed('isAnonymous'),
+      )).thenAnswer((_) async {});
+
+      await repository.deleteShop('shop1');
+
+      // 順次 updateShop ではなくバッチ1回で更新される
+      verifyNever(mockDataService.updateShop(
+        any,
+        isAnonymous: anyNamed('isAnonymous'),
+      ));
+      final captured = verify(mockDataService.updateShopsBatch(
+        captureAny,
+        isAnonymous: anyNamed('isAnonymous'),
+      )).captured;
+      expect(captured.length, 1);
+      final batchedShops = (captured.first as List).cast<Shop>();
+      expect(
+        batchedShops.map((s) => s.id).toSet(),
+        {'shop2', 'shop3'},
+      );
     });
   });
 
