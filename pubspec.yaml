@@ -18,7 +18,7 @@ dependencies:
   google_fonts: ^8.0.0
   in_app_purchase: ^3.2.3
   package_info_plus: ^9.0.1
-  google_mobile_ads: ^7.0.0
+  google_mobile_ads: ^9.0.0
   uuid: ^4.3.3
   image_picker: ^1.0.4
   camera: ^0.12.0
