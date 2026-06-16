@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:maikago/models/list.dart';
+import 'package:maikago/utils/calculation_utils.dart';
 import 'package:maikago/utils/input_formatters.dart';
 import 'package:maikago/widgets/common_dialog.dart';
 
@@ -279,7 +280,7 @@ class _ListItemEditDialogState extends State<ListItemEditDialog> {
                       ),
                     ),
                     Text(
-                      '¥${(_price * _quantity * (1 - _discount)).round()}',
+                      '¥${calcItemTotalRaw(price: _price, quantity: _quantity, discount: _discount)}',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Theme.of(context).colorScheme.primary,

@@ -135,6 +135,17 @@ void main() {
       // 333 * 1 * 0.9 = 299.7 → 300
       expect(total, 300);
     });
+
+    test('複数個×割引の丸めはアイテム単位で1回（Issue #156）', () {
+      final shop = createSampleShop(items: [
+        createSampleItem(
+            price: 101, quantity: 3, discount: 0.5, isChecked: true),
+      ]);
+
+      // (101 * 3 * 0.5) = 151.5 → round() = 152
+      // 単価で丸める旧実装なら (101*0.5).round()=51 → ×3 = 153 とズレていた
+      expect(manager.getDisplayTotal(shop), 152);
+    });
   });
 
   group('getSharedTabTotal', () {

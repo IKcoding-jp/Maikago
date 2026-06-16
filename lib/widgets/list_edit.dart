@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:maikago/models/list.dart';
+import 'package:maikago/utils/calculation_utils.dart';
 import 'package:maikago/widgets/common_dialog.dart';
 import 'package:maikago/widgets/list_item_edit_dialog.dart';
 
@@ -218,7 +219,7 @@ class _ListEditState extends State<ListEdit> {
                                                 ),
                                               ),
                                               Text(
-                                                '¥${(widget.item.price * (1 - widget.item.discount)).round()}',
+                                                '¥${calcDiscountedUnitPrice(widget.item.price, widget.item.discount)}',
                                                 style: TextStyle(
                                                   color: colorScheme.error,
                                                   fontWeight: FontWeight.bold,

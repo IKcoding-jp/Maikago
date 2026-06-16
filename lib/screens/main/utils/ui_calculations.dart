@@ -1,5 +1,4 @@
 import 'package:maikago/models/list.dart';
-import 'package:maikago/models/shop.dart';
 import 'package:maikago/models/sort_mode.dart';
 
 /// MainScreen用の静的ユーティリティクラス
@@ -59,15 +58,5 @@ class MainScreenCalculations {
               b.createdAt ?? DateTime.now(),
             );
     }
-  }
-
-  /// 購入済みアイテムの合計金額を計算
-  static int calcTotal(Shop currentShop, {bool includeTax = false}) {
-    int total = 0;
-    for (final item in currentShop.items.where((e) => e.isChecked)) {
-      final price = (item.price * (1 - item.discount)).round();
-      total += price * item.quantity;
-    }
-    return includeTax ? (total * 1.1).round() : total;
   }
 }

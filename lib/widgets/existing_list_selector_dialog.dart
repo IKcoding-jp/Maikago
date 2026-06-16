@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:maikago/models/shop.dart';
+import 'package:maikago/utils/calculation_utils.dart';
 import 'package:maikago/widgets/common_dialog.dart';
 
 /// 既存リスト選択ダイアログ
@@ -196,12 +197,6 @@ class ExistingListSelectorDialog extends StatelessWidget {
     );
   }
 
-  int _calculateTotalPrice(Shop shop) {
-    int total = 0;
-    for (final item in shop.items) {
-      final price = (item.price * (1 - item.discount)).round();
-      total += price * item.quantity;
-    }
-    return total;
-  }
+  int _calculateTotalPrice(Shop shop) =>
+      calcShopTotal(shop, checkedOnly: false);
 }

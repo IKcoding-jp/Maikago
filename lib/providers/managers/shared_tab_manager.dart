@@ -5,6 +5,7 @@ import 'package:maikago/providers/data_provider_state.dart';
 import 'package:maikago/providers/managers/data_cache_manager.dart';
 import 'package:maikago/providers/repositories/shop_repository.dart';
 import 'package:maikago/services/debug_service.dart';
+import 'package:maikago/utils/calculation_utils.dart';
 
 /// 共有タブの管理を担うクラス。
 /// - 共有タブの作成・更新・削除
@@ -29,14 +30,7 @@ class SharedTabManager {
 
   // --- 合計・予算計算 ---
 
-  int getDisplayTotal(Shop shop) {
-    final checkedItems = shop.items.where((item) => item.isChecked).toList();
-    return checkedItems.fold<int>(0, (sum, item) {
-      final itemTotal =
-          (item.price * item.quantity * (1 - item.discount)).round();
-      return sum + itemTotal;
-    });
-  }
+  int getDisplayTotal(Shop shop) => calcShopTotal(shop);
 
   int getSharedTabTotal(String sharedTabGroupId) {
     final sharedShops = _cacheManager.shops
