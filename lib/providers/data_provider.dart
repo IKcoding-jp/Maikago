@@ -118,8 +118,15 @@ class DataProvider extends ChangeNotifier {
 
   /// ログイン時のデータ読み込み後、移行し残したゲストデータがあれば自動救済する。
   /// 残データが無ければ [retryPendingGuestMigration] は即座に終了する（Issue #154）。
+  ///
+  /// 明示サインイン経路（auth_provider.signInWithGoogle）でも移行が走るため、
+  /// 新規サインイン時はこのリトライと二重に起動しうるが、移行は冪等かつ
+  /// [_guardedMigrate] で直列化されるため安全（残データ無しなら即終了）。
+  /// このリトライはアプリ再起動でセッション復元したときの救済が主目的。
+  /// loadData() が失敗してもリトライ救済を試みられるよう then ではなく
+  /// whenComplete で繋ぐ。
   void _loadDataAndRecoverGuestData() {
-    loadData().then((_) {
+    loadData().whenComplete(() {
       // 残ったゲストデータの再移行。失敗してもログインは継続する。
       retryPendingGuestMigration();
     });
@@ -403,55 +410,61 @@ class DataProvider extends ChangeNotifier {
     var migratedShops = 0;
     var migratedItems = 0;
 
-    // 4. ショップごとに保存し、紐づくアイテムを保存する
+    // 4. ショップを保存する（未移行のもののみ）。
+    // 新ID採番はクラウド既存データとの競合を回避するため。
     for (final shop in localShops) {
-      // 既に移行済みならクラウドIDを再利用、未移行なら新IDを採番。
-      // 新ID採番はクラウド既存データとの競合を回避するため。
-      var cloudShopId = shopIdMap[shop.id];
-
-      if (cloudShopId == null) {
-        cloudShopId = shop.id == '0'
-            ? '0' // デフォルトショップはID '0' のまま
-            : 'migrated_${shop.id}_${DateTime.now().millisecondsSinceEpoch}';
-        try {
-          final cloudShop = shop.copyWith(
-            id: cloudShopId,
-            createdAt: shop.createdAt ?? DateTime.now(),
-          );
-          await _dataService.saveShop(cloudShop, isAnonymous: false);
-          shopIdMap[shop.id] = cloudShopId;
-          migratedShops++;
-          // 成功のたびに進捗を永続化（途中で落ちても記録を残す）
-          await SettingsPersistence.saveMigrationProgress(
-              shopIdMap, migratedItemIds);
-        } catch (e) {
-          DebugService().logError('ショップ移行失敗: ${shop.name} - $e');
-          // ショップが作れないと配下アイテムも保存できないので次のショップへ。
-          // 失敗件数は末尾で「進捗に残っていないもの」として集計する。
-          continue;
-        }
+      if (shopIdMap.containsKey(shop.id)) {
+        continue; // 既に移行済み → 重複作成しない
       }
+      final cloudShopId = shop.id == '0'
+          ? '0' // デフォルトショップはID '0' のまま
+          : 'migrated_${shop.id}_${DateTime.now().millisecondsSinceEpoch}';
+      try {
+        final cloudShop = shop.copyWith(
+          id: cloudShopId,
+          createdAt: shop.createdAt ?? DateTime.now(),
+        );
+        await _dataService.saveShop(cloudShop, isAnonymous: false);
+        shopIdMap[shop.id] = cloudShopId;
+        migratedShops++;
+        // 成功のたびに進捗を永続化（途中で落ちても記録を残す）
+        await SettingsPersistence.saveMigrationProgress(
+            shopIdMap, migratedItemIds);
+      } catch (e) {
+        DebugService().logError('ショップ移行失敗: id=${shop.id} - $e');
+        // 失敗は末尾で「進捗に残っていないもの」として集計する。
+      }
+    }
 
-      // 5. ショップに紐づくアイテムを保存（移行済みはスキップ）
-      final shopItems =
-          localItems.where((item) => item.shopId == shop.id).toList();
-      for (final item in shopItems) {
-        if (migratedItemIds.contains(item.id)) {
-          continue; // 既に移行済み → 重複作成しない
-        }
-        try {
-          final cloudItem = item.copyWith(
-            shopId: cloudShopId,
-            createdAt: item.createdAt ?? DateTime.now(),
-          );
-          await _dataService.saveItem(cloudItem, isAnonymous: false);
-          migratedItemIds.add(item.id);
-          migratedItems++;
-          await SettingsPersistence.saveMigrationProgress(
-              shopIdMap, migratedItemIds);
-        } catch (e) {
-          DebugService().logError('アイテム移行失敗: ${item.name} - $e');
-        }
+    // 5. アイテムを保存する。
+    // 「属するショップがローカルに存在しない」orphan アイテム（ショップ削除後に
+    // 残ったアイテム等）も取りこぼさないよう、全アイテムを対象に走査する。
+    final localShopIds = localShops.map((s) => s.id).toSet();
+    for (final item in localItems) {
+      if (migratedItemIds.contains(item.id)) {
+        continue; // 既に移行済み → 重複作成しない
+      }
+      // 属するショップがローカルに在るのに今回移行できていない場合は、
+      // アイテムも保存できないので後回し（末尾で失敗集計→次回再試行）。
+      if (localShopIds.contains(item.shopId) &&
+          !shopIdMap.containsKey(item.shopId)) {
+        continue;
+      }
+      // 移行済みショップはクラウドIDへ。orphan は元のshopIdのまま保存し、
+      // ローカル状態を忠実に保持する（クラウドでも孤立アイテムとして残るが消えない）。
+      final cloudShopId = shopIdMap[item.shopId] ?? item.shopId;
+      try {
+        final cloudItem = item.copyWith(
+          shopId: cloudShopId,
+          createdAt: item.createdAt ?? DateTime.now(),
+        );
+        await _dataService.saveItem(cloudItem, isAnonymous: false);
+        migratedItemIds.add(item.id);
+        migratedItems++;
+        await SettingsPersistence.saveMigrationProgress(
+            shopIdMap, migratedItemIds);
+      } catch (e) {
+        DebugService().logError('アイテム移行失敗: id=${item.id} - $e');
       }
     }
 

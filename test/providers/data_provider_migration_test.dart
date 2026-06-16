@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:maikago/models/shop.dart';
+import 'package:maikago/models/list.dart';
 import 'package:maikago/providers/data_provider.dart';
 import 'package:maikago/services/settings_persistence.dart';
 import '../helpers/test_helpers.dart';
@@ -172,6 +173,45 @@ void main() {
           await SettingsPersistence.loadMigrationProgress();
       expect(shopMap, isEmpty);
       expect(itemIds, isEmpty);
+    });
+  });
+
+  group('migrateGuestDataToCloud - orphanアイテム（永久スタック防止）', () {
+    test('属するショップが存在しないorphanアイテムも移行され、完了できる', () async {
+      // shopA は存在するが、deletedShop は存在しない（ショップ削除後に残ったアイテムを模擬）
+      final shopA = createSampleShop(id: 'shopA', name: 'ショップA');
+      final itemA1 =
+          createSampleItem(id: 'itemA1', name: '商品A1', shopId: 'shopA');
+      final orphan =
+          createSampleItem(id: 'orphan1', name: '孤立商品', shopId: 'deletedShop');
+
+      SharedPreferences.setMockInitialValues({
+        'is_guest_mode': true,
+        'guest_shops': jsonEncode([shopA.toMap()]),
+        'guest_items': jsonEncode([itemA1.toMap(), orphan.toMap()]),
+      });
+
+      when(mockDataService.saveShop(any, isAnonymous: anyNamed('isAnonymous')))
+          .thenAnswer((_) async {});
+      when(mockDataService.saveItem(any, isAnonymous: anyNamed('isAnonymous')))
+          .thenAnswer((_) async {});
+
+      final result = await dataProvider.migrateGuestDataToCloud();
+
+      // orphan を取りこぼさず全件成功でき、毎回警告が出続けるスタックに陥らない
+      expect(result.isComplete, isTrue, reason: 'orphanアイテムで永久未完了になってはいけない');
+      expect(result.migratedItems, 2);
+
+      // orphan は元の shopId を保ったまま保存される（ローカル状態を忠実に保持）
+      final savedItems = verify(
+        mockDataService.saveItem(captureAny,
+            isAnonymous: anyNamed('isAnonymous')),
+      ).captured.cast<ListItem>();
+      final savedOrphan = savedItems.firstWhere((i) => i.id == 'orphan1');
+      expect(savedOrphan.shopId, 'deletedShop');
+
+      // 全件成功 → ゲストデータがクリアされる
+      expect(await SettingsPersistence.loadGuestItems(), isNull);
     });
   });
 
