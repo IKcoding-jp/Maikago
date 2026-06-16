@@ -226,6 +226,8 @@ class _ItemEditDialogState extends State<ItemEditDialog> {
                 inputFormatters: [
                   FilteringTextInputFormatter.digitsOnly,
                   noLeadingZeroFormatter(),
+                  // Issue #157: 割引率は100%まで（150%引き等を入力させない）
+                  maxValueFormatter(100),
                 ],
                 onChanged: (value) => setState(() {}),
               ),

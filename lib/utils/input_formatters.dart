@@ -19,3 +19,18 @@ TextInputFormatter noLeadingZeroFormatter({bool allowSingleZero = false}) {
     return newValue;
   });
 }
+
+/// 数値入力の上限を超えさせないフォーマッター
+///
+/// Issue #157: 割引率(%)など範囲のある入力欄で使う。
+/// [max] を超える値が入力された場合は変更を拒否し、変更前の値を維持する。
+/// 数値として解釈できない入力（空文字を除く）も変更前を維持する。
+TextInputFormatter maxValueFormatter(int max) {
+  return TextInputFormatter.withFunction((oldValue, newValue) {
+    if (newValue.text.isEmpty) return newValue;
+    final value = int.tryParse(newValue.text);
+    if (value == null) return oldValue;
+    if (value > max) return oldValue;
+    return newValue;
+  });
+}
