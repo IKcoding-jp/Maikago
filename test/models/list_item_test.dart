@@ -132,6 +132,70 @@ void main() {
       });
     });
 
+    // Issue #164: 別バージョンや手動修正で型不一致・不正な値が混入しても
+    // 例外を投げず、可能な範囲で復元する（壊れた1件で全体を道連れにしない）。
+    group('fromJson 不正データ耐性（Issue #164）', () {
+      test('quantity/priceが文字列でも例外を投げずパースする', () {
+        final json = <String, dynamic>{
+          'id': '1',
+          'name': 'テスト',
+          'quantity': '3',
+          'price': '250',
+          'shopId': '0',
+        };
+
+        final item = ListItem.fromJson(json);
+
+        expect(item.quantity, 3);
+        expect(item.price, 250);
+      });
+
+      test('quantity/priceが数値化できない文字列でもデフォルト値になる', () {
+        final json = <String, dynamic>{
+          'id': '1',
+          'name': 'テスト',
+          'quantity': 'abc',
+          'price': '',
+          'shopId': '0',
+        };
+
+        final item = ListItem.fromJson(json);
+
+        expect(item.quantity, 0);
+        expect(item.price, 0);
+      });
+
+      test('discountが文字列でも例外を投げずパースする', () {
+        final json = <String, dynamic>{
+          'id': '1',
+          'name': 'テスト',
+          'price': 100,
+          'discount': '0.5',
+          'shopId': '0',
+        };
+
+        final item = ListItem.fromJson(json);
+
+        expect(item.discount, 0.5);
+      });
+
+      test('createdAt/timestampが不正な文字列でも例外を投げずnullになる', () {
+        final json = <String, dynamic>{
+          'id': '1',
+          'name': 'テスト',
+          'price': 100,
+          'shopId': '0',
+          'createdAt': 'not-a-date',
+          'timestamp': '????',
+        };
+
+        final item = ListItem.fromJson(json);
+
+        expect(item.createdAt, isNull);
+        expect(item.timestamp, isNull);
+      });
+    });
+
     group('toJson / fromJson', () {
       test('正常にシリアライズ・デシリアライズできる', () {
         final createdAt = DateTime(2026, 1, 15, 10, 30, 0);

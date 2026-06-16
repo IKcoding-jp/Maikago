@@ -1,3 +1,5 @@
+import 'package:maikago/utils/json_parsers.dart';
+
 // リスト項目（数量・単価・割引・チェック状態）
 class ListItem {
   // Issue #157: discount/price/quantity を範囲補正する唯一の入口。
@@ -28,23 +30,19 @@ class ListItem {
   factory ListItem.fromJson(Map<String, dynamic> json) => ListItem(
         id: json['id']?.toString() ?? '',
         name: json['name']?.toString() ?? '',
-        quantity: (json['quantity'] as num?)?.toInt() ?? 0,
-        price: (json['price'] as num?)?.toInt() ?? 0,
-        discount: (json['discount'] as num? ?? 0).toDouble(),
+        quantity: parseIntSafe(json['quantity']),
+        price: parseIntSafe(json['price']),
+        discount: parseDoubleSafe(json['discount']),
         isChecked: json['isChecked'] ?? false,
         shopId: json['shopId']?.toString() ?? '',
-        createdAt: json['createdAt'] != null
-            ? DateTime.parse(json['createdAt'])
-            : null,
+        createdAt: parseDateTimeSafe(json['createdAt']),
         isReferencePrice: json['isReferencePrice'] ?? false,
         janCode: json['janCode']?.toString(),
         productUrl: json['productUrl']?.toString(),
         imageUrl: json['imageUrl']?.toString(),
         storeName: json['storeName']?.toString(),
-        timestamp: json['timestamp'] != null
-            ? DateTime.parse(json['timestamp'])
-            : null,
-        sortOrder: (json['sortOrder'] as num?)?.toInt() ?? 0,
+        timestamp: parseDateTimeSafe(json['timestamp']),
+        sortOrder: parseIntSafe(json['sortOrder']),
         isRecipeOrigin: json['isRecipeOrigin'] ?? false,
         recipeName: json['recipeName']?.toString(),
       );

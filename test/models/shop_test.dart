@@ -200,6 +200,102 @@ void main() {
       });
     });
 
+    // Issue #164: Firestoreの壊れたデータ（null要素・型不一致・不正値）で
+    // fromJsonがクラッシュせず、正常なアイテム/フィールドは読み込めること。
+    group('fromJson 不正データ耐性（Issue #164）', () {
+      test('items配列にnull要素が混ざっても例外を投げず除去される', () {
+        final json = <String, dynamic>{
+          'id': 'shop_1',
+          'name': 'スーパー',
+          'items': [
+            {'id': '1', 'name': 'りんご', 'price': 100, 'shopId': 'shop_1'},
+            null,
+            {'id': '2', 'name': 'バナナ', 'price': 200, 'shopId': 'shop_1'},
+          ],
+        };
+
+        final shop = Shop.fromJson(json);
+
+        expect(shop.items.length, 2);
+        expect(shop.items[0].name, 'りんご');
+        expect(shop.items[1].name, 'バナナ');
+      });
+
+      test('items配列に型不一致の要素が混ざっても正常分は読み込める', () {
+        final json = <String, dynamic>{
+          'id': 'shop_1',
+          'name': 'スーパー',
+          'items': [
+            {'id': '1', 'name': 'りんご', 'price': 100, 'shopId': 'shop_1'},
+            'これはMapではない文字列',
+            42,
+            {'id': '2', 'name': 'バナナ', 'price': 200, 'shopId': 'shop_1'},
+          ],
+        };
+
+        final shop = Shop.fromJson(json);
+
+        expect(shop.items.length, 2);
+        expect(shop.items.map((e) => e.name), ['りんご', 'バナナ']);
+      });
+
+      test('itemsがList型でない場合でも例外を投げず空になる', () {
+        final json = <String, dynamic>{
+          'id': 'shop_1',
+          'name': 'スーパー',
+          'items': {'broken': 'object'},
+        };
+
+        final shop = Shop.fromJson(json);
+
+        expect(shop.items, isEmpty);
+        expect(shop.name, 'スーパー');
+      });
+
+      test('createdAtが不正な文字列でも例外を投げずnullになる', () {
+        final json = <String, dynamic>{
+          'id': 'shop_1',
+          'name': 'スーパー',
+          'createdAt': 'broken-date',
+        };
+
+        final shop = Shop.fromJson(json);
+
+        expect(shop.createdAt, isNull);
+        expect(shop.name, 'スーパー');
+      });
+
+      test('budgetがdouble値でも正しくintにパースされる', () {
+        final json = <String, dynamic>{
+          'id': 'shop_1',
+          'name': 'スーパー',
+          'budget': 3000.0,
+        };
+
+        final shop = Shop.fromJson(json);
+
+        expect(shop.budget, 3000);
+      });
+
+      test('壊れたアイテムを含むショップでも個々のアイテムが復元される', () {
+        // priceが数値化できない壊れたアイテムが混ざっても、
+        // そのアイテムはスキップされ、残りは読み込める。
+        final json = <String, dynamic>{
+          'id': 'shop_1',
+          'name': 'スーパー',
+          'items': [
+            {'id': '1', 'name': '正常', 'price': 100, 'shopId': 'shop_1'},
+            {'id': '2', 'name': '文字列price', 'price': '250', 'shopId': 'shop_1'},
+          ],
+        };
+
+        final shop = Shop.fromJson(json);
+
+        expect(shop.items.length, 2);
+        expect(shop.items[1].price, 250);
+      });
+    });
+
     group('fromJson デュアルリード（Firestore後方互換）', () {
       test('旧フィールド名（sharedGroupId）から読み込める', () {
         final json = {

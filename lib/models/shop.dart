@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:maikago/models/list.dart';
 import 'package:maikago/models/sort_mode.dart';
+import 'package:maikago/utils/json_parsers.dart';
 
 class Shop {
   Shop({
@@ -21,16 +23,9 @@ class Shop {
   factory Shop.fromJson(Map<String, dynamic> json) => Shop(
         id: json['id']?.toString() ?? '',
         name: json['name']?.toString() ?? '',
-        items: (json['items'] as List<dynamic>?)
-                ?.map((e) => ListItem.fromJson(e as Map<String, dynamic>))
-                .toList() ??
-            [],
-        budget: json['budget'] != null
-            ? int.tryParse(json['budget'].toString())
-            : null,
-        createdAt: json['createdAt'] != null
-            ? DateTime.parse(json['createdAt'])
-            : null,
+        items: _parseItems(json['items']),
+        budget: parseNullableIntSafe(json['budget']),
+        createdAt: parseDateTimeSafe(json['createdAt']),
         incSortMode: SortMode.values.firstWhere(
           (mode) => mode.name == json['incSortMode'],
           orElse: () => SortMode.dateNew,
@@ -51,6 +46,28 @@ class Shop {
       );
 
   factory Shop.fromMap(Map<String, dynamic> map) => Shop.fromJson(map);
+
+  /// items 配列を防御的にパースする（Issue #164）。
+  ///
+  /// - List 以外（型不一致）なら空リストを返す
+  /// - null・非 Map 要素は除去する
+  /// - 個々のアイテム復元に失敗しても、その1件だけスキップし他は残す
+  static List<ListItem> _parseItems(dynamic raw) {
+    if (raw is! List) return const [];
+    final items = <ListItem>[];
+    for (final e in raw) {
+      if (e is! Map) continue;
+      try {
+        items.add(ListItem.fromJson(Map<String, dynamic>.from(e)));
+      } catch (error) {
+        // 壊れた1件はスキップ。ユーザーデータは含めずカウントのみログ。
+        if (kDebugMode) {
+          debugPrint('Shop.fromJson: 壊れたアイテムをスキップしました ($error)');
+        }
+      }
+    }
+    return items;
+  }
 
   final String id;
   final String name;
