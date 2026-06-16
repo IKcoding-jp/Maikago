@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:maikago/models/release_history.dart';
 import 'package:maikago/services/debug_service.dart';
 
@@ -89,6 +90,7 @@ class AppInfoService {
 
   /// アプリストアでアプリを開く
   Future<void> openAppStore() async {
+    if (kIsWeb) return; // Web版ではネイティブストアへの遷移は不要
     try {
       // Androidの場合
       const androidUrl =
