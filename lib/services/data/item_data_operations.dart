@@ -66,6 +66,21 @@ mixin ItemDataOperations on DataServiceBase {
     await collection.doc(itemId).delete();
   }
 
+  /// Firestore ドキュメントを安全に [ListItem] へ変換する（Issue #164）。
+  ///
+  /// 壊れたドキュメント1件で一覧全体を道連れにしないため、復元に失敗した
+  /// ドキュメントはログを残して null を返し、呼び出し側でスキップする。
+  ListItem? _itemFromDocSafe(QueryDocumentSnapshot<Map<String, dynamic>> doc) {
+    try {
+      final data = doc.data();
+      data['id'] = doc.id;
+      return ListItem.fromMap(data);
+    } catch (e) {
+      DebugService().logError('アイテム復元エラー（スキップ） id=${doc.id}: $e');
+      return null;
+    }
+  }
+
   /// すべてのリストを取得（リアルタイム購読）
   Stream<List<ListItem>> getItems({bool isAnonymous = false}) {
     // Firebaseが利用できない場合は空のストリームを返す
@@ -78,11 +93,10 @@ mixin ItemDataOperations on DataServiceBase {
             .orderBy('createdAt', descending: true)
             .snapshots()
             .map((snapshot) {
-          return snapshot.docs.map((doc) {
-            final data = doc.data();
-            data['id'] = doc.id;
-            return ListItem.fromMap(data);
-          }).toList();
+          return snapshot.docs
+              .map(_itemFromDocSafe)
+              .whereType<ListItem>()
+              .toList();
         }),
       );
     } else {
@@ -90,11 +104,10 @@ mixin ItemDataOperations on DataServiceBase {
           .orderBy('createdAt', descending: true)
           .snapshots()
           .map((snapshot) {
-        return snapshot.docs.map((doc) {
-          final data = doc.data();
-          data['id'] = doc.id;
-          return ListItem.fromMap(data);
-        }).toList();
+        return snapshot.docs
+            .map(_itemFromDocSafe)
+            .whereType<ListItem>()
+            .toList();
       });
     }
   }
@@ -130,9 +143,9 @@ mixin ItemDataOperations on DataServiceBase {
       final Map<String, ListItem> uniqueItemsMap = {};
 
       for (final doc in snapshot.docs) {
-        final data = doc.data();
-        data['id'] = doc.id;
-        final item = ListItem.fromMap(data);
+        final item = _itemFromDocSafe(doc);
+        // 壊れたドキュメントはスキップし、他のアイテムは読み込む（Issue #164）
+        if (item == null) continue;
 
         // 同じIDのアイテムが既に存在する場合は、より新しい方を保持
         if (uniqueItemsMap.containsKey(item.id)) {

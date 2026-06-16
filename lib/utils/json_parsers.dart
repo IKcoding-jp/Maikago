@@ -35,3 +35,16 @@ DateTime? parseDateTimeSafe(dynamic value) {
   if (value is String) return DateTime.tryParse(value);
   return null;
 }
+
+/// [value] を bool へ変換する。bool・"true"/"false" 文字列・数値(0以外=true)に対応し、
+/// 変換不能なら [fallback]。型不一致でも例外を投げないため（Issue #164）。
+bool parseBoolSafe(dynamic value, {bool fallback = false}) {
+  if (value is bool) return value;
+  if (value is String) {
+    final lower = value.toLowerCase();
+    if (lower == 'true') return true;
+    if (lower == 'false') return false;
+  }
+  if (value is num) return value != 0;
+  return fallback;
+}

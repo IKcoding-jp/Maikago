@@ -194,6 +194,38 @@ void main() {
         expect(item.createdAt, isNull);
         expect(item.timestamp, isNull);
       });
+
+      test('bool項目が文字列でも例外を投げずパースする', () {
+        final json = <String, dynamic>{
+          'id': '1',
+          'name': 'テスト',
+          'price': 100,
+          'shopId': '0',
+          'isChecked': 'true',
+          'isReferencePrice': 'false',
+          'isRecipeOrigin': 'TRUE',
+        };
+
+        final item = ListItem.fromJson(json);
+
+        expect(item.isChecked, true);
+        expect(item.isReferencePrice, false);
+        expect(item.isRecipeOrigin, true);
+      });
+
+      test('bool項目が想定外の型でもデフォルト値(false)になる', () {
+        final json = <String, dynamic>{
+          'id': '1',
+          'name': 'テスト',
+          'price': 100,
+          'shopId': '0',
+          'isChecked': {'broken': 'map'},
+        };
+
+        final item = ListItem.fromJson(json);
+
+        expect(item.isChecked, false);
+      });
     });
 
     group('toJson / fromJson', () {
