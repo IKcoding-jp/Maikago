@@ -27,7 +27,7 @@ dependencies:
   image: ^4.1.7
   permission_handler: ^12.0.1
   crypto: ^3.0.3
-  device_info_plus: ^12.0.0
+  device_info_plus: ^12.4.0
   web: ^1.1.1
   go_router: ^17.1.0
   tutorial_coach_mark: ^1.3.3
