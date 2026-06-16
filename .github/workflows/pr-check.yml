@@ -83,5 +83,9 @@ jobs:
         run: flutter pub get
       - name: Create env.json placeholder
         run: echo '{}' > env.json
+      - name: Create google-services.json
+        run: echo "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
       - name: Flutter build APK
         run: flutter build apk --debug
