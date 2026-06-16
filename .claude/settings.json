@@ -1,5 +1,16 @@
 {
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "git checkout main && git pull 2>/dev/null || true",
+            "statusMessage": "mainに切り替えてpull中..."
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Edit|Write",
@@ -7,6 +18,17 @@
           {
             "type": "command",
             "command": "FILE=$(jq -r '.tool_input.file_path // empty'); if [[ \"$FILE\" == *.dart ]]; then dart format \"$FILE\" 2>/dev/null || true; fi"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "if": "Bash(gh pr merge *)",
+            "command": "git checkout main && git pull 2>/dev/null || true",
+            "statusMessage": "mainに切り替えてpull中..."
           }
         ]
       }
