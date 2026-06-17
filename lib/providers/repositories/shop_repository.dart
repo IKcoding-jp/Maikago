@@ -29,6 +29,11 @@ class ShopRepository {
   /// 直近で更新を行ったショップのIDとタイムスタンプ（楽観更新のバウンス抑止）
   final Map<String, DateTime> pendingUpdates = {};
 
+  /// Firebaseへの書き込みがまだ完了していないショップID（issue #160）。
+  /// in-flightの間は経過時間に関係なくローカルを優先し、書き込み遅延が
+  /// 長くても自分の直前の編集が古いスナップショットで巻き戻らないようにする。
+  final Set<String> inFlightUpdates = {};
+
   // --- デフォルトショップ管理 ---
 
   /// デフォルトショップ（id:'0'）を確保
@@ -155,8 +160,9 @@ class ShopRepository {
     if (index != -1) {
       originalShop = _cacheManager.shops[index]; // 元の状態を保存
       _cacheManager.shops[index] = shop;
-      // 楽観的更新の保護
+      // 楽観的更新の保護：保護開始＋書き込み中フラグ（issue #160）
       pendingUpdates[shop.id] = DateTime.now();
+      inFlightUpdates.add(shop.id);
 
       // バッチ更新中でない場合のみUIを更新
       if (!_state.isBatchUpdating) {
@@ -171,8 +177,16 @@ class ShopRepository {
           shop,
           isAnonymous: _state.shouldUseAnonymousSession,
         );
+        // issue #160: 書き込み完了。配信遅延の窓を完了時刻から測り直し、
+        // 書き込み中フラグを解除する。
+        if (index != -1) {
+          pendingUpdates[shop.id] = DateTime.now();
+          inFlightUpdates.remove(shop.id);
+        }
         _state.isSynced = true;
       } catch (e) {
+        // 書き込み失敗：in-flightを解除し恒久ロックを防ぐ（保護は時間窓で自然失効）。
+        inFlightUpdates.remove(shop.id);
         _state.isSynced = false;
         DebugService().logError('Firebase更新エラー: $e');
 
@@ -184,6 +198,9 @@ class ShopRepository {
 
         throw convertToAppException(e, contextMessage: 'ショップの更新');
       }
+    } else if (index != -1) {
+      // ローカルモードは書き込みが無いので即完了扱い。
+      inFlightUpdates.remove(shop.id);
     }
   }
 

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -285,6 +287,52 @@ void main() {
       } catch (_) {}
 
       expect(cacheManager.shops.first.name, '元の名前');
+    });
+  });
+
+  group('inFlightUpdates（書き込み完了ベースの保護・issue #160）', () {
+    test('Firebase書き込み中はinFlightUpdatesにIDが入り、完了すると外れる', () async {
+      cacheManager.setLocalMode(false);
+      final shop = createSampleShop(id: 'shop1', name: 'テスト');
+      cacheManager.addShopToCache(shop);
+
+      // 書き込みを保留して「書き込み遅延中」を再現する
+      final completer = Completer<void>();
+      when(mockDataService.updateShop(
+        any,
+        isAnonymous: anyNamed('isAnonymous'),
+      )).thenAnswer((_) => completer.future);
+
+      // 完了を待たずにupdateShopを開始
+      final future = repository.updateShop(shop);
+
+      // 書き込み中：in-flight（経過時間に関係なくローカルが守られる状態）
+      expect(repository.inFlightUpdates, contains('shop1'));
+
+      // 書き込み完了
+      completer.complete();
+      await future;
+
+      // 完了後：in-flight解除。以降の保護はpendingUpdatesの時間窓に委ねる
+      expect(repository.inFlightUpdates, isNot(contains('shop1')));
+      expect(repository.pendingUpdates, contains('shop1'));
+    });
+
+    test('Firebase書き込み失敗時はinFlightUpdatesが解除される（恒久ロック防止）', () async {
+      cacheManager.setLocalMode(false);
+      final shop = createSampleShop(id: 'shop1', name: '元の名前');
+      cacheManager.addShopToCache(shop);
+
+      when(mockDataService.updateShop(
+        any,
+        isAnonymous: anyNamed('isAnonymous'),
+      )).thenThrow(Exception('Firebase error'));
+
+      try {
+        await repository.updateShop(shop.copyWith(name: '新しい名前'));
+      } catch (_) {}
+
+      expect(repository.inFlightUpdates, isNot(contains('shop1')));
     });
   });
 

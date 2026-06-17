@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:maikago/providers/repositories/item_repository.dart';
@@ -276,6 +278,53 @@ void main() {
         () => repository.updateItem(item),
         throwsA(isA<Exception>()),
       );
+    });
+  });
+
+  group('inFlightUpdates（書き込み完了ベースの保護・issue #160）', () {
+    test('Firebase書き込み中はinFlightUpdatesにIDが入り、完了すると外れる', () async {
+      cacheManager.setLocalMode(false);
+      final item = createSampleItem(id: 'item1', name: 'テスト');
+      cacheManager.addItemToCache(item);
+
+      // 書き込みを保留して「書き込み遅延中」を再現する
+      final completer = Completer<void>();
+      when(mockDataService.updateItem(
+        any,
+        isAnonymous: anyNamed('isAnonymous'),
+      )).thenAnswer((_) => completer.future);
+
+      // 完了を待たずにupdateItemを開始
+      final future = repository.updateItem(item);
+
+      // 書き込み中：in-flight（経過時間に関係なくローカルが守られる状態）
+      expect(repository.inFlightUpdates, contains('item1'));
+
+      // 書き込み完了
+      completer.complete();
+      await future;
+
+      // 完了後：in-flight解除。以降の保護はpendingUpdatesの時間窓に委ねる
+      expect(repository.inFlightUpdates, isNot(contains('item1')));
+      expect(repository.pendingUpdates, contains('item1'));
+    });
+
+    test('Firebase書き込み失敗時はinFlightUpdatesが解除される（恒久ロック防止）', () async {
+      cacheManager.setLocalMode(false);
+      final item = createSampleItem(id: 'item1', name: 'テスト');
+      cacheManager.addItemToCache(item);
+
+      when(mockDataService.updateItem(
+        any,
+        isAnonymous: anyNamed('isAnonymous'),
+      )).thenThrow(Exception('Firebase error'));
+
+      await expectLater(
+        () => repository.updateItem(item),
+        throwsA(isA<Exception>()),
+      );
+
+      expect(repository.inFlightUpdates, isNot(contains('item1')));
     });
   });
 
