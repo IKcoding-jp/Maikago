@@ -11,6 +11,8 @@ import 'package:maikago/models/one_time_purchase.dart';
 import 'package:maikago/services/debug_service.dart';
 import 'package:maikago/services/purchase/trial_manager.dart';
 import 'package:maikago/services/purchase/purchase_persistence.dart';
+import 'package:maikago/services/purchase/purchase_validator.dart';
+import 'package:maikago/services/purchase/restore_coordinator.dart';
 
 /// 非消耗型アプリ内課金管理サービス
 class OneTimePurchaseService extends ChangeNotifier {
@@ -32,7 +34,7 @@ class OneTimePurchaseService extends ChangeNotifier {
   };
 
   final Map<String, ProductDetails> _productIdToDetails = {};
-  Completer<bool>? _restoreCompleter;
+  final RestoreCoordinator _restoreCoordinator = RestoreCoordinator();
 
   // 購入済み機能の状態
   final Map<String, bool> _userPremiumStatus = {};
@@ -266,9 +268,23 @@ class OneTimePurchaseService extends ChangeNotifier {
   /// 成功した購入の処理
   Future<void> _handleSuccessfulPurchase(
       PurchaseDetails purchaseDetails) async {
+    // クライアント側の一次検証: 不正・未完了の購入情報ではプレミアムを有効化しない。
+    // （真の改竄対策はサーバー側レシート検証で別途対応する。Issue #163 対応案#1）
+    if (!PurchaseValidator.isValidPremiumPurchase(purchaseDetails)) {
+      DebugService().logWarning(
+          '不正または未完了の購入情報を拒否: ${purchaseDetails.productID} / ${purchaseDetails.status}');
+      return;
+    }
+
     // 購入済み機能を更新
-    if (purchaseDetails.productID == 'maikago_premium_unlock') {
+    if (PurchaseValidator.premiumProductIds
+        .contains(purchaseDetails.productID)) {
       _userPremiumStatus[_currentUserId] = true;
+    }
+
+    // 復元イベントなら待機中の復元処理（restorePurchases）を完了させる
+    if (purchaseDetails.status == PurchaseStatus.restored) {
+      _restoreCoordinator.signalRestored();
     }
 
     // ローカルストレージとFirestoreに保存
@@ -331,17 +347,16 @@ class OneTimePurchaseService extends ChangeNotifier {
         return false;
       }
 
-      _restoreCompleter = Completer<bool>();
-      await _inAppPurchase.restorePurchases();
-
-      // 復元完了を待つ（タイムアウト付き）
-      final result = await _restoreCompleter!.future.timeout(
-        const Duration(seconds: 30),
-        onTimeout: () {
-          DebugService().logError('非消耗型購入復元タイムアウト');
-          return false;
-        },
+      // 復元完了待ち・タイムアウト・再試行のためのリセットは
+      // RestoreCoordinator に委譲（タイムアウト時に Completer を放置せず、
+      // 再試行が正常動作することを保証する。Issue #163）
+      final result = await _restoreCoordinator.wait(
+        () => _inAppPurchase.restorePurchases(),
       );
+
+      if (!result) {
+        DebugService().logError('非消耗型購入復元タイムアウト');
+      }
 
       return result;
     } catch (e) {
