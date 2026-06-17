@@ -1,5 +1,10 @@
 import 'package:flutter/foundation.dart'
-    show kIsWeb, ChangeNotifier, defaultTargetPlatform, TargetPlatform;
+    show
+        kIsWeb,
+        ChangeNotifier,
+        defaultTargetPlatform,
+        TargetPlatform,
+        visibleForTesting;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -12,20 +17,35 @@ import 'package:maikago/services/debug_service.dart';
 import 'package:maikago/services/purchase/trial_manager.dart';
 import 'package:maikago/services/purchase/purchase_persistence.dart';
 import 'package:maikago/services/purchase/purchase_validator.dart';
+import 'package:maikago/services/purchase/purchase_verifier.dart';
 import 'package:maikago/services/purchase/restore_coordinator.dart';
 
 /// 非消耗型アプリ内課金管理サービス
 class OneTimePurchaseService extends ChangeNotifier {
-  OneTimePurchaseService() {
+  OneTimePurchaseService({
+    PurchaseVerifier? purchaseVerifier,
+    PurchasePersistence? persistence,
+  })  : _persistence = persistence ?? PurchasePersistence(),
+        _purchaseVerifier =
+            purchaseVerifier ?? CloudFunctionsPurchaseVerifier() {
     _trialManager = TrialManager(
       onStateChanged: _onTrialStateChanged,
     );
   }
 
-  final PurchasePersistence _persistence = PurchasePersistence();
+  final PurchasePersistence _persistence;
+  final PurchaseVerifier _purchaseVerifier;
   late final TrialManager _trialManager;
 
-  final InAppPurchase _inAppPurchase = InAppPurchase.instance;
+  /// サーバー未検証だがレガシーのプレミアムフラグが残っているユーザー向けに、
+  /// 起動時に自動再検証（restorePurchases）が必要かどうか（Issue #163 移行）。
+  bool _needsServerReverification = false;
+
+  // 遅延初期化: 実際にストアが必要になるまで InAppPurchase.instance に触れない
+  // （構築しただけで課金クライアント接続を開始させない。テスト容易性も向上）。
+  InAppPurchase? _inAppPurchaseInstance;
+  InAppPurchase get _inAppPurchase =>
+      _inAppPurchaseInstance ??= InAppPurchase.instance;
   StreamSubscription<List<PurchaseDetails>>? _purchaseSubscription;
   bool _isStoreAvailable = false;
 
@@ -150,6 +170,7 @@ class OneTimePurchaseService extends ChangeNotifier {
       if (userId != null) {
         _currentUserId = userId;
         await _loadFromFirestore();
+        _maybeTriggerServerReverification();
         notifyListeners(); // ユーザーID変更時の通知を追加
       }
       return;
@@ -164,6 +185,7 @@ class OneTimePurchaseService extends ChangeNotifier {
 
       if (Firebase.apps.isNotEmpty) {
         await _loadFromFirestore();
+        _maybeTriggerServerReverification();
       }
       DebugService().logInfo('非消耗型アプリ内課金初期化完了');
       // 初期化時に体験期間タイマーをセット
@@ -269,14 +291,41 @@ class OneTimePurchaseService extends ChangeNotifier {
   Future<void> _handleSuccessfulPurchase(
       PurchaseDetails purchaseDetails) async {
     // クライアント側の一次検証: 不正・未完了の購入情報ではプレミアムを有効化しない。
-    // （真の改竄対策はサーバー側レシート検証で別途対応する。Issue #163 対応案#1）
     if (!PurchaseValidator.isValidPremiumPurchase(purchaseDetails)) {
       DebugService().logWarning(
           '不正または未完了の購入情報を拒否: ${purchaseDetails.productID} / ${purchaseDetails.status}');
       return;
     }
 
-    // 購入済み機能を更新
+    // サーバー側レシート検証（Issue #163 対応案#1/#3）。
+    // Android はサーバー検証を必須とし、検証成功時のみプレミアムを付与する。
+    // サーバーは検証成功時に premium_entitlement（サーバー専用ドキュメント）へ
+    // 書き込むため、クライアント改竄では付与できない。
+    // iOS はサーバー検証が未実装のため、当面はクライアント一次検証のみで付与する
+    // （TODO #163: App Store Server API 対応時に Android と同様の必須化を行う）。
+    final isIos = defaultTargetPlatform == TargetPlatform.iOS;
+    if (!isIos) {
+      try {
+        final result = await _purchaseVerifier.verify(
+          platform: 'android',
+          productId: purchaseDetails.productID,
+          purchaseToken:
+              purchaseDetails.verificationData.serverVerificationData,
+        );
+        if (!result.verified) {
+          DebugService().logWarning(
+              'サーバー購入検証に失敗（プレミアム付与せず）: ${purchaseDetails.productID}');
+          _setError('購入を検証できませんでした。時間をおいて再試行してください。');
+          return;
+        }
+      } on PurchaseVerificationException catch (e) {
+        DebugService().logError('サーバー購入検証エラー: ${e.code}');
+        _setError('購入の検証に失敗しました。時間をおいて再試行してください。');
+        return;
+      }
+    }
+
+    // 検証通過 → 購入済み機能を更新
     if (PurchaseValidator.premiumProductIds
         .contains(purchaseDetails.productID)) {
       _userPremiumStatus[_currentUserId] = true;
@@ -287,13 +336,37 @@ class OneTimePurchaseService extends ChangeNotifier {
       _restoreCoordinator.signalRestored();
     }
 
-    // ローカルストレージとFirestoreに保存
+    // ローカルストレージにキャッシュ（オフライン表示用）。プレミアムの最終ソースは
+    // サーバーの premium_entitlement であり、次回ロード時に上書きされる。
     await _saveToLocalStorage();
-    await _saveToFirestore();
 
     notifyListeners();
-    DebugService().logInfo('購入完了: ${purchaseDetails.productID}');
+    DebugService().logInfo('購入検証成功・プレミアム付与: ${purchaseDetails.productID}');
   }
+
+  /// テスト用: 現在のユーザーIDを直接設定する。
+  @visibleForTesting
+  void setCurrentUserIdForTest(String userId) {
+    _currentUserId = userId;
+  }
+
+  /// テスト用: 購入成功時の内部処理を直接呼び出す。
+  @visibleForTesting
+  Future<void> handleSuccessfulPurchaseForTest(PurchaseDetails details) {
+    return _handleSuccessfulPurchase(details);
+  }
+
+  /// テスト用: デバイスフィンガープリントを直接設定する。
+  @visibleForTesting
+  set deviceFingerprintForTest(String value) => _deviceFingerprint = value;
+
+  /// テスト用: Firestore読み込み（移行判定含む）を直接呼び出す。
+  @visibleForTesting
+  Future<void> loadFromFirestoreForTest() => _loadFromFirestore();
+
+  /// テスト用: 自動再検証が必要と判定されたか。
+  @visibleForTesting
+  bool get needsServerReverificationForTest => _needsServerReverification;
 
   /// 商品を購入
   Future<bool> purchaseProduct(OneTimePurchase purchase) async {
@@ -400,19 +473,54 @@ class OneTimePurchaseService extends ChangeNotifier {
   }
 
   /// Firestoreから読み込み（PurchasePersistenceに委譲）
+  ///
+  /// プレミアム判定の信頼できる唯一のソースは、サーバー検証済みの
+  /// premium_entitlement（Issue #163 対応案#3）。レガシーのクライアント
+  /// フラグ（premium_status_map）は移行判定にのみ使う。
   Future<void> _loadFromFirestore() async {
     if (_currentUserId.isEmpty || _deviceFingerprint == null) return;
 
+    // サーバー検証済みエンタイトルメント（信頼できる唯一のソース）
+    final isPremiumVerified =
+        await _persistence.loadServerEntitlement(userId: _currentUserId);
+
+    // 体験期間履歴 + レガシーフラグ（移行判定用）
     final data = await _persistence.loadFromFirestore(
       userId: _currentUserId,
       deviceFingerprint: _deviceFingerprint!,
     );
 
-    if (data != null) {
-      _userPremiumStatus[_currentUserId] = data.isPremium;
-      if (data.isTrialEverStarted) {
-        _trialManager.markAsEverStarted();
-      }
+    final hasLegacyPremium = data?.isPremium ?? false;
+    if (data != null && data.isTrialEverStarted) {
+      _trialManager.markAsEverStarted();
+    }
+
+    final isIos = defaultTargetPlatform == TargetPlatform.iOS;
+    if (isIos) {
+      // iOSはサーバー検証が未実装。既存挙動を壊さないよう、サーバー検証済み
+      // またはレガシーフラグのいずれかでプレミアムとする（自動再検証はしない）。
+      _userPremiumStatus[_currentUserId] =
+          isPremiumVerified || hasLegacyPremium;
+      _needsServerReverification = false;
+    } else {
+      // Androidはサーバー検証済みフラグのみを信頼。レガシーフラグだけが立つ
+      // 既存ユーザーは、起動時の自動再検証でシームレスに移行する。
+      _userPremiumStatus[_currentUserId] = isPremiumVerified;
+      _needsServerReverification = !isPremiumVerified && hasLegacyPremium;
+    }
+  }
+
+  /// レガシープレミアムの自動再検証を必要なら起動する（Issue #163 移行）。
+  ///
+  /// サーバー検証済みフラグがなく、レガシーのクライアントフラグだけが残る
+  /// 既存ユーザーに対し、restorePurchases を自動実行してサーバー再検証へ導く。
+  void _maybeTriggerServerReverification() {
+    if (_needsServerReverification && _isStoreAvailable) {
+      _needsServerReverification = false;
+      DebugService().logInfo('レガシープレミアムの自動再検証を開始（Issue #163移行）');
+      // 結果は purchaseStream 経由で _handleSuccessfulPurchase が受け、
+      // サーバー検証→entitlement付与まで進む。失敗してもUIは継続。
+      unawaited(restorePurchases());
     }
   }
 

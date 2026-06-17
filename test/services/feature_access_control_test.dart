@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:maikago/services/feature_access_control.dart';
 import 'package:maikago/services/one_time_purchase_service.dart';
@@ -95,6 +96,22 @@ class FakeOneTimePurchaseService extends ChangeNotifier
 
   @override
   void resetForLogout() {}
+
+  // テストシーム（本体の @visibleForTesting メソッド）。このFakeでは未使用。
+  @override
+  void setCurrentUserIdForTest(String userId) {}
+
+  @override
+  Future<void> handleSuccessfulPurchaseForTest(PurchaseDetails details) async {}
+
+  @override
+  set deviceFingerprintForTest(String value) {}
+
+  @override
+  Future<void> loadFromFirestoreForTest() async {}
+
+  @override
+  bool get needsServerReverificationForTest => false;
 }
 
 void main() {
