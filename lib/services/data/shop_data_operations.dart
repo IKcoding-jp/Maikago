@@ -62,7 +62,7 @@ mixin ShopDataOperations on DataServiceBase {
 
   /// 複数ショップを WriteBatch で一括更新する（Issue #159）。
   ///
-  /// 共有タブのグループ化・解除のように複数ドキュメントをまとめて更新する場合、
+  /// 同期タブのグループ化・解除のように複数ドキュメントをまとめて更新する場合、
   /// 順次 `await updateShop()` だと途中失敗で「一部だけ書き込まれた」中途半端な
   /// 状態が残る。WriteBatch なら **全件成功 or 全件失敗** が Firestore 側で保証される。
   ///
@@ -83,7 +83,7 @@ mixin ShopDataOperations on DataServiceBase {
       collection = userShopsCollection;
     }
 
-    // WriteBatch の上限は 500 操作。共有タブのグループは小規模だが、
+    // WriteBatch の上限は 500 操作。同期タブのグループは小規模だが、
     // 念のため 500 件ごとに分割してコミットする。
     const int batchLimit = 500;
     try {

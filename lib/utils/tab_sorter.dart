@@ -2,17 +2,17 @@ import 'package:maikago/models/shop.dart';
 
 /// タブの並び順を管理するユーティリティクラス
 class TabSorter {
-  /// 共有タブごとにタブを隣接させる並び順を生成
+  /// 同期タブごとにタブを隣接させる並び順を生成
   ///
   /// 並び順のルール:
-  /// 1. 共有タブごとにグループ化
+  /// 1. 同期タブごとにグループ化
   /// 2. 各グループ内では作成日時順（古い順）
-  /// 3. 共有していないタブは最後に配置
+  /// 3. 同期していないタブは最後に配置
   /// 4. 同じグループのタブは隣接して表示
   static List<Shop> sortShopsBySharedTabs(List<Shop> shops) {
     if (shops.isEmpty) return shops;
 
-    // 1. 共有タブごとに分類
+    // 1. 同期タブごとに分類
     final Map<String, List<Shop>> sharedTabGroups = {};
     final List<Shop> unsharedShops = [];
 
@@ -28,7 +28,7 @@ class TabSorter {
       }
     }
 
-    // 2. 各共有タブ内で作成日時順（古い順）にソート
+    // 2. 各同期タブ内で作成日時順（古い順）にソート
     for (final groupShops in sharedTabGroups.values) {
       groupShops.sort((a, b) {
         final aDate = a.createdAt ?? DateTime(1970);
@@ -37,7 +37,7 @@ class TabSorter {
       });
     }
 
-    // 3. 共有タブをグループID順（作成日時順）でソート
+    // 3. 同期タブをグループID順（作成日時順）でソート
     final sortedGroups = sharedTabGroups.entries.toList()
       ..sort((a, b) {
         // 各グループの最初のタブの作成日時で比較
@@ -48,7 +48,7 @@ class TabSorter {
         return aDate.compareTo(bDate);
       });
 
-    // 4. 共有していないタブも作成日時順（古い順）にソート
+    // 4. 同期していないタブも作成日時順（古い順）にソート
     unsharedShops.sort((a, b) {
       final aDate = a.createdAt ?? DateTime(1970);
       final bDate = b.createdAt ?? DateTime(1970);
@@ -58,12 +58,12 @@ class TabSorter {
     // 5. 最終的な並び順を構築
     final List<Shop> sortedShops = [];
 
-    // 共有タブを順番に追加
+    // 同期タブを順番に追加
     for (final group in sortedGroups) {
       sortedShops.addAll(group.value);
     }
 
-    // 共有していないタブを最後に追加
+    // 同期していないタブを最後に追加
     sortedShops.addAll(unsharedShops);
 
     return sortedShops;

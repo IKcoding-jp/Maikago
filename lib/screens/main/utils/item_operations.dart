@@ -34,7 +34,7 @@ class ItemOperations {
         : dataProvider
             .shops[selectedTabIndex.clamp(0, dataProvider.shops.length - 1)];
 
-    // 共有タブの合計を事前更新
+    // 同期タブの合計を事前更新
     if (shop.sharedTabGroupId != null) {
       dataProvider.notifyDataChanged();
     }
@@ -51,7 +51,7 @@ class ItemOperations {
         item.copyWith(isChecked: checked, sortOrder: newSortOrder),
       );
 
-      // 共有タブの合計を更新
+      // 同期タブの合計を更新
       if (shop.sharedTabGroupId != null) {
         dataProvider.notifyDataChanged();
       }

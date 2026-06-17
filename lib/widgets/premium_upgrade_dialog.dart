@@ -4,7 +4,7 @@ import 'package:maikago/widgets/common_dialog.dart';
 
 /// プレミアムアップグレード誘導ダイアログ（汎用）
 ///
-/// OCR、ショップ、レシピ、共有タブなど、
+/// OCR、ショップ、レシピ、同期タブなど、
 /// 各種機能制限に達した際に表示する共通ダイアログ。
 class PremiumUpgradeDialog extends StatelessWidget {
   const PremiumUpgradeDialog({

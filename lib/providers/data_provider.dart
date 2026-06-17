@@ -1,4 +1,4 @@
-// アプリの業務ロジック（一覧/編集/同期/共有合計）を集約し、UI層に通知
+// アプリの業務ロジック（一覧/編集/同期/同期合計）を集約し、UI層に通知
 import 'package:maikago/services/data_service.dart';
 import 'package:maikago/models/list.dart';
 import 'package:maikago/models/shop.dart';
@@ -9,7 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:maikago/providers/data_provider_state.dart';
 import 'package:maikago/providers/managers/data_cache_manager.dart';
 import 'package:maikago/providers/managers/realtime_sync_manager.dart';
-import 'package:maikago/providers/managers/shared_tab_manager.dart';
+import 'package:maikago/providers/managers/sync_tab_manager.dart';
 import 'package:maikago/providers/repositories/item_repository.dart';
 import 'package:maikago/providers/repositories/shop_repository.dart';
 import 'package:maikago/services/debug_service.dart';
@@ -45,7 +45,7 @@ class DataProvider extends ChangeNotifier {
       shopRepository: _shopRepository,
       state: _state,
     );
-    _sharedTabManager = SharedTabManager(
+    _sharedTabManager = SyncTabManager(
       dataService: _dataService,
       cacheManager: _cacheManager,
       shopRepository: _shopRepository,
@@ -59,7 +59,7 @@ class DataProvider extends ChangeNotifier {
   late final ItemRepository _itemRepository;
   late final ShopRepository _shopRepository;
   late final RealtimeSyncManager _syncManager;
-  late final SharedTabManager _sharedTabManager;
+  late final SyncTabManager _sharedTabManager;
 
   AuthProvider? _authProvider;
   VoidCallback? _authListener;
@@ -534,7 +534,7 @@ class DataProvider extends ChangeNotifier {
     super.dispose();
   }
 
-  // --- 合計・予算計算（SharedTabManagerに委譲） ---
+  // --- 合計・予算計算（SyncTabManagerに委譲） ---
 
   int getDisplayTotal(Shop shop) {
     return _sharedTabManager.getDisplayTotal(shop);
@@ -548,7 +548,7 @@ class DataProvider extends ChangeNotifier {
     return _sharedTabManager.getSharedTabBudget(sharedTabGroupId);
   }
 
-  // --- 共有タブ管理（SharedTabManagerに委譲） ---
+  // --- 同期タブ管理（SyncTabManagerに委譲） ---
 
   Future<void> updateSharedTab(String shopId, List<String> selectedTabIds,
       {String? name, String? sharedTabGroupIcon}) async {

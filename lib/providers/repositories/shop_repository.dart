@@ -225,7 +225,7 @@ class ShopRepository {
         final updatedSharedTabs =
             shop.sharedTabs.where((id) => id != shopId).toList();
 
-        // 共有相手がいなくなった場合は共有マークも削除
+        // 同期相手がいなくなった場合は同期マークも削除
         final updatedShop = shop.copyWith(
           sharedTabs: updatedSharedTabs,
           clearSharedTabGroupId: updatedSharedTabs.isEmpty,
@@ -255,7 +255,7 @@ class ShopRepository {
           isAnonymous: _state.shouldUseAnonymousSession,
         );
 
-        // Issue #159: 参照を外した共有相手を WriteBatch でまとめて保存する
+        // Issue #159: 参照を外した同期相手を WriteBatch でまとめて保存する
         // （順次 await だと途中失敗で一部だけ更新される不整合が残るため）
         final affectedShops = affectedShopIds
             .map(
@@ -278,7 +278,7 @@ class ShopRepository {
         // エラーが発生した場合は削除を取り消し
         _cacheManager.addShopToCache(shopToDelete);
 
-        // Issue #159: 参照を外した共有相手も更新前の状態へ巻き戻す
+        // Issue #159: 参照を外した同期相手も更新前の状態へ巻き戻す
         for (final entry in originalAffectedShops.entries) {
           final index =
               _cacheManager.shops.indexWhere((shop) => shop.id == entry.key);
