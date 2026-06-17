@@ -4,6 +4,7 @@ import 'package:maikago/services/feature_access_control.dart';
 import 'package:maikago/services/one_time_purchase_service.dart';
 import 'package:go_router/go_router.dart';
 import 'package:maikago/services/settings_theme.dart';
+import 'package:maikago/utils/design_constants.dart';
 import 'package:maikago/utils/theme_utils.dart';
 
 /// 買い切り型アプリ内課金のアップグレード促進UIシステム
@@ -186,7 +187,7 @@ class UpgradePromotionWidget extends StatelessWidget {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(DesignConstants.borderRadiusDialog),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,

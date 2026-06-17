@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:maikago/services/settings_theme.dart';
+import 'package:maikago/utils/design_constants.dart';
 import 'package:maikago/utils/theme_utils.dart';
 
 /// カメラ使用時のガイドラインと注意喚起ダイアログ
@@ -23,7 +24,7 @@ class _CameraGuidelinesDialogState extends State<CameraGuidelinesDialog> {
   Widget build(BuildContext context) {
     return Dialog(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(DesignConstants.borderRadiusDialog),
       ),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 400),

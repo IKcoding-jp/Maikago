@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:maikago/utils/design_constants.dart';
 import 'package:maikago/utils/dialog_utils.dart';
 import 'package:maikago/utils/theme_utils.dart';
 
@@ -52,7 +53,9 @@ class CommonDialog extends StatelessWidget {
       onPressed: onPressed ?? () => context.pop(),
       style: TextButton.styleFrom(
         foregroundColor: theme.colorScheme.onSurface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(
+            borderRadius:
+                BorderRadius.circular(DesignConstants.borderRadiusDialog)),
       ),
       child: Text(label),
     );
@@ -70,7 +73,9 @@ class CommonDialog extends StatelessWidget {
       style: ElevatedButton.styleFrom(
         backgroundColor: colorScheme.primary,
         foregroundColor: colorScheme.onPrimary,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(
+            borderRadius:
+                BorderRadius.circular(DesignConstants.borderRadiusDialog)),
         elevation: 0,
       ),
       child: Text(label),
@@ -87,7 +92,9 @@ class CommonDialog extends StatelessWidget {
       onPressed: onPressed,
       style: TextButton.styleFrom(
         foregroundColor: Theme.of(context).colorScheme.error,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(
+            borderRadius:
+                BorderRadius.circular(DesignConstants.borderRadiusDialog)),
       ),
       child: Text(label),
     );
@@ -110,7 +117,9 @@ class CommonDialog extends StatelessWidget {
   static Widget loading(BuildContext context) {
     final theme = Theme.of(context);
     return AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      shape: RoundedRectangleBorder(
+          borderRadius:
+              BorderRadius.circular(DesignConstants.borderRadiusDialog)),
       backgroundColor: theme.cardColor,
       content: const SizedBox(
         height: 100,
@@ -169,7 +178,9 @@ class CommonDialog extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     return AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      shape: RoundedRectangleBorder(
+          borderRadius:
+              BorderRadius.circular(DesignConstants.borderRadiusDialog)),
       backgroundColor: theme.cardColor,
       insetPadding: insetPadding ??
           const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
