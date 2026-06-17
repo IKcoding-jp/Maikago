@@ -15,7 +15,7 @@ import {
   assertSucceeds,
   assertFails,
 } from '@firebase/rules-unit-testing';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 // firestore.rules はリポジトリルートにある（このファイルから2階層上）
@@ -40,6 +40,23 @@ async function seedFamily(familyId, data) {
 function readAs(uid, familyId) {
   const db = testEnv.authenticatedContext(uid).firestore();
   return getDoc(doc(db, 'families', familyId));
+}
+
+// 認証済みコンテキストで families ドキュメントを新規作成（create ルール検証用）
+function createAs(uid, familyId, data) {
+  const db = testEnv.authenticatedContext(uid).firestore();
+  return setDoc(doc(db, 'families', familyId), data);
+}
+
+// 認証済みコンテキストで既存 families ドキュメントを部分更新（update ルール検証用）
+function updateAs(uid, familyId, patch) {
+  const db = testEnv.authenticatedContext(uid).firestore();
+  return updateDoc(doc(db, 'families', familyId), patch);
+}
+
+// members 配列から memberIds（UID配列）を作る
+function idsOf(members) {
+  return members.map((m) => m.id);
 }
 
 before(async () => {
@@ -128,5 +145,129 @@ describe('families の読み取り権限', () => {
     // memberIds が無い旧データでは、配列ハードコードの制限により11人目は読めないまま。
     // → 11人目を救うには memberIds を持たせること、という修正方針を固定する。
     await assertFails(readAs('u10', 'f-legacy-11'));
+  });
+});
+
+// ── Issue #198 F-2: create のメンバー検証 ──────────────────────────
+// create 時に「自分以外のメンバーを含められない」ことを強制する。
+// 作成契約: members = [{id: ownerId}], memberIds = [ownerId]
+describe('families の作成権限 (F-2)', () => {
+  it('オーナー自分1人のみの作成は許可', async () => {
+    await assertSucceeds(
+      createAs('owner', 'f-create-ok', {
+        ownerId: 'owner',
+        members: [{ id: 'owner', name: 'me' }],
+        memberIds: ['owner'],
+      })
+    );
+  });
+
+  it('他人を members に含む作成は拒否（CFが他人のsubscriptionを上書きする経路を封鎖）', async () => {
+    await assertFails(
+      createAs('owner', 'f-create-victim-members', {
+        ownerId: 'owner',
+        members: [
+          { id: 'owner', name: 'me' },
+          { id: 'victim', name: 'v' },
+        ],
+        memberIds: ['owner', 'victim'],
+      })
+    );
+  });
+
+  it('他人を memberIds に含む作成は拒否（members は自分だけでも）', async () => {
+    await assertFails(
+      createAs('owner', 'f-create-victim-ids', {
+        ownerId: 'owner',
+        members: [{ id: 'owner', name: 'me' }],
+        memberIds: ['owner', 'victim'],
+      })
+    );
+  });
+
+  it('memberIds 欠如の作成は拒否（契約: [ownerId] 必須）', async () => {
+    await assertFails(
+      createAs('owner', 'f-create-no-ids', {
+        ownerId: 'owner',
+        members: [{ id: 'owner', name: 'me' }],
+      })
+    );
+  });
+
+  it('ownerId が自分でない作成は拒否（既存挙動の固定）', async () => {
+    await assertFails(
+      createAs('attacker', 'f-create-spoof', {
+        ownerId: 'someoneelse',
+        members: [{ id: 'someoneelse', name: 'x' }],
+        memberIds: ['someoneelse'],
+      })
+    );
+  });
+});
+
+// ── Issue #198 F-5: add-self を memberIds 化（10人上限の撤廃）──────────
+describe('families の参加・脱退 (F-5: memberIds化で人数無制限)', () => {
+  it('11人を超える family に12人目が add-self で参加できる', async () => {
+    const members = makeMembers(11); // u0..u10（11人）
+    await seedFamily('f-join', { ownerId: 'u0', members, memberIds: idsOf(members) });
+    const joiner = 'u11'; // 12人目。旧 isMemberInArray(0..9) では参加判定できなかった。
+    const newMembers = [...members, { id: joiner, name: 'newbie' }];
+    await assertSucceeds(
+      updateAs(joiner, 'f-join', { members: newMembers, memberIds: idsOf(newMembers) })
+    );
+  });
+
+  it('add-self で他人も同時に追加しようとすると拒否', async () => {
+    const members = makeMembers(3);
+    await seedFamily('f-join-bad', { ownerId: 'u0', members, memberIds: idsOf(members) });
+    const joiner = 'u9';
+    const newMembers = [...members, { id: joiner, name: 'j' }, { id: 'stranger', name: 's' }];
+    await assertFails(
+      updateAs(joiner, 'f-join-bad', { members: newMembers, memberIds: idsOf(newMembers) })
+    );
+  });
+
+  it('index>9 のメンバーが脱退できる（branch1=memberIds判定で上限なしを固定）', async () => {
+    const members = makeMembers(12); // u0..u11
+    await seedFamily('f-leave', { ownerId: 'u0', members, memberIds: idsOf(members) });
+    const leaver = 'u11'; // 12人目
+    const remaining = members.filter((m) => m.id !== leaver);
+    await assertSucceeds(
+      updateAs(leaver, 'f-leave', { members: remaining, memberIds: idsOf(remaining) })
+    );
+  });
+});
+
+// ── Issue #198 F-1: members 変更時の memberIds 整合強制 ──────────────
+describe('families の memberIds 整合強制 (F-1)', () => {
+  it('members だけ縮めて memberIds を据え置く update は拒否（stale 防止）', async () => {
+    const members = makeMembers(5); // u0..u4
+    await seedFamily('f-stale', { ownerId: 'u0', members, memberIds: idsOf(members) });
+    // オーナー u0 が u4 を members から外すが memberIds は触らない → サイズ不一致
+    const newMembers = members.filter((m) => m.id !== 'u4');
+    await assertFails(updateAs('u0', 'f-stale', { members: newMembers }));
+  });
+
+  it('members と memberIds を揃えて縮めれば許可（正しい削除）', async () => {
+    const members = makeMembers(5);
+    await seedFamily('f-shrink', { ownerId: 'u0', members, memberIds: idsOf(members) });
+    const newMembers = members.filter((m) => m.id !== 'u4');
+    await assertSucceeds(
+      updateAs('u0', 'f-shrink', { members: newMembers, memberIds: idsOf(newMembers) })
+    );
+  });
+
+  it('削除フロー: オーナー削除後、対象は read も update もできない', async () => {
+    const members = makeMembers(5);
+    await seedFamily('f-flow', { ownerId: 'u0', members, memberIds: idsOf(members) });
+    // オーナーが u4 を正しく削除（members/memberIds 両方）
+    const remaining = members.filter((m) => m.id !== 'u4');
+    await assertSucceeds(
+      updateAs('u0', 'f-flow', { members: remaining, memberIds: idsOf(remaining) })
+    );
+    // u4 はもう read できない
+    await assertFails(readAs('u4', 'f-flow'));
+    // u4 はもう update できない
+    await assertFails(updateAs('u4', 'f-flow', { someField: 'x' }));
   });
 });

@@ -61,31 +61,42 @@ service cloud.firestore {
 
     // ファミリー共有機能のルール
     match /families/{familyId} {
-      // 新規作成時はownerId必須 + 自分自身がオーナーであること
+      // 新規作成時の検証（Issue #198 F-2）。
+      // 作成契約: 自分1人のみのファミリーを作る。参加は add-self（招待承認）経由でのみ行う。
+      //   - ownerId は自分自身（string）
+      //   - members は自分1人だけ（[{id: ownerId, ...}]）
+      //   - memberIds は [ownerId] だけ
+      // これにより、攻撃者が他人のUIDを members/memberIds に詰めた family を作って
+      // applyFamilyPlanToGroup に他人の subscription/current を上書きさせる経路を封鎖する。
       allow create: if request.auth != null &&
-        request.resource.data.keys().hasAll(['ownerId', 'members']) &&
+        request.resource.data.keys().hasAll(['ownerId', 'members', 'memberIds']) &&
+        request.resource.data.ownerId is string &&
         request.resource.data.ownerId == request.auth.uid &&
-        request.resource.data.ownerId is string;
+        request.resource.data.members is list &&
+        request.resource.data.members.size() == 1 &&
+        request.resource.data.members[0] is map &&
+        request.resource.data.members[0].id == request.auth.uid &&
+        request.resource.data.memberIds is list &&
+        request.resource.data.memberIds.size() == 1 &&
+        request.resource.data.memberIds.hasOnly([request.auth.uid]);
 
       // 読み取り：メンバーまたはオーナーのみ（人数無制限の memberIds 判定に集約）
       allow read: if request.auth != null &&
         isFamilyMember(resource.data, request.auth.uid);
 
-      // 更新：メンバー、オーナー、または新規メンバー追加時
-      allow update: if request.auth != null && (
-        // 既存メンバーまたはオーナー（人数無制限の memberIds 判定に集約）
-        isFamilyMember(resource.data, request.auth.uid) ||
-        // 新しいメンバーが自分自身を追加する場合（招待承認時）
-        // members配列のサイズが1つ増え、新しいメンバーが自分自身である場合
-        (request.resource.data.members.size() == resource.data.members.size() + 1 &&
-         isAddingSelfAsMember(resource.data.members, request.resource.data.members, request.auth.uid)) ||
-        // オーナーによるメンバー削除時（members配列のサイズが減る場合）
-        (resource.data.ownerId == request.auth.uid &&
-         request.resource.data.members.size() < resource.data.members.size()) ||
-        // 自分自身の脱退時（members配列のサイズが1つ減り、自分が削除される場合）
-        (request.resource.data.members.size() == resource.data.members.size() - 1 &&
-         isRemovingSelfAsMember(resource.data.members, request.resource.data.members, request.auth.uid))
-      );
+      // 更新（Issue #198 F-1 / F-5）。
+      // どの経路でも members と memberIds のサイズ整合を強制（memberIdsConsistent）した上で、
+      //   1. 既存メンバー/オーナー → 全更新可（メンバー削除・自分の脱退もこの経路で吸収。
+      //      判定は memberIds ベース＝人数無制限なので 11人目以降の脱退も成立する）
+      //   2. 非メンバーが自分だけを追加して参加（add-self／招待承認）→ memberIds ベースで判定
+      // 旧 owner-remove / self-leave の専用節は branch1 が包含するため統合。
+      // members 変更時に memberIds を据え置く stale 権限は memberIdsConsistent で即時に弾き、
+      // 内容のズレは onDocumentUpdated トリガ（functions）が権威的に再計算して是正する。
+      allow update: if request.auth != null &&
+        memberIdsConsistent(request.resource.data) && (
+          isFamilyMember(resource.data, request.auth.uid) ||
+          isJoiningSelf(resource.data, request.resource.data, request.auth.uid)
+        );
 
       allow delete: if request.auth != null &&
         resource.data.ownerId == request.auth.uid;
@@ -100,11 +111,11 @@ service cloud.firestore {
       // memberIds を持たない旧データは従来どおり 3/4 のフォールバックで判定する（回帰なし）。
       // Map.get(key, default) でフィールド欠如時のエラーを防ぎ、is list / is map で型不一致エラーを防ぐ。
       //
-      // ⚠ memberIds は members から派生する非正規化フィールド。members を変更する書き込みは
-      //   memberIds も同時に更新しないとズレる（削除済みメンバーが memberIds 経由で読み続ける恐れ）。
-      //   現状 members を作成後に変更する経路はクライアント未実装のため未発生。
-      //   将来 add/remove を実装する際は、書き込み側または onDocumentUpdated トリガで
-      //   memberIds の同期を必ず用意すること（書き込み側の堅牢化は Issue #198 で追跡）。
+      // memberIds は members から派生する非正規化フィールド。Issue #198 で書き込み側を堅牢化済み：
+      //   - update では memberIdsConsistent() が members と memberIds のサイズ整合を即時強制し、
+      //     「members だけ変えて memberIds を据え置く」stale 権限を弾く。
+      //   - functions の onDocumentUpdated('families/{familyId}') が members から memberIds を
+      //     権威的に再計算し、内容のズレも是正する（2層防御）。
       function isFamilyMember(data, userId) {
         return data.ownerId == userId ||
           (data.get('memberIds', []) is list && userId in data.get('memberIds', [])) ||
@@ -131,16 +142,27 @@ service cloud.firestore {
         );
       }
 
-      // ヘルパー関数：自分自身をメンバーとして追加しているかチェック
-      function isAddingSelfAsMember(oldMembers, newMembers, userId) {
-        // 新しいメンバーリストに自分が含まれているが、古いリストには含まれていない
-        return isMemberInArray(newMembers, userId) && !isMemberInArray(oldMembers, userId);
+      // ヘルパー関数：members と memberIds のサイズ整合（Issue #198 F-1・即時不変条件）。
+      // 両方とも配列のときだけサイズ一致を要求する。どちらかが配列でない
+      // （旧データ＝memberIds 無し／members が Map 形式）場合はこの即時チェックをスキップし、
+      // onDocumentUpdated トリガの再計算に委ねる（回帰防止）。
+      function memberIdsConsistent(newData) {
+        return !(newData.get('members', 0) is list) ||
+          !(newData.get('memberIds', 0) is list) ||
+          newData.get('members', []).size() == newData.get('memberIds', []).size();
       }
 
-      // ヘルパー関数：自分自身をメンバーから削除しているかチェック
-      function isRemovingSelfAsMember(oldMembers, newMembers, userId) {
-        // 古いメンバーリストに自分が含まれているが、新しいリストには含まれていない
-        return isMemberInArray(oldMembers, userId) && !isMemberInArray(newMembers, userId);
+      // ヘルパー関数：非メンバーが自分だけを memberIds に追加して参加するか（Issue #198 F-5・add-self）。
+      // memberIds ベースで人数無制限に判定する。変更キーは members / memberIds / updatedAt のみ、
+      // 既存メンバーは全保持し、新しく加わるのは本人だけ（他人を巻き込めない）。
+      function isJoiningSelf(oldData, newData, userId) {
+        return newData.diff(oldData).affectedKeys().hasOnly(['members', 'memberIds', 'updatedAt']) &&
+          oldData.get('memberIds', []) is list &&
+          newData.get('memberIds', []) is list &&
+          newData.get('memberIds', []).hasAll(oldData.get('memberIds', [])) &&
+          newData.get('memberIds', []).size() == oldData.get('memberIds', []).size() + 1 &&
+          userId in newData.get('memberIds', []) &&
+          !(userId in oldData.get('memberIds', []));
       }
     }
 
