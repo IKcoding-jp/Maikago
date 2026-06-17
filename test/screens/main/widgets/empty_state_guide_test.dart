@@ -29,8 +29,7 @@ void main() {
       expect(find.byIcon(Icons.shopping_cart_outlined), findsOneWidget);
     });
 
-    testWidgets('dispose後にエラーが発生しない（AnimationControllerのリーク確認）',
-        (tester) async {
+    testWidgets('dispose後にエラーが発生しない', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(

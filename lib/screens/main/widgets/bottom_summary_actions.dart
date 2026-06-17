@@ -329,17 +329,9 @@ class _BottomSummaryActionsState extends State<BottomSummaryActions> {
         Expanded(
           child: Align(
             alignment: Alignment.centerRight,
-            child: ElevatedButton.icon(
+            child: ElevatedButton(
               key: widget.fabKey,
               onPressed: widget.onFab,
-              icon: const Icon(Icons.add, size: 18),
-              label: Text(
-                'リスト追加',
-                style: TextStyle(
-                  fontSize: theme.textTheme.bodySmall?.fontSize,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
               style: ElevatedButton.styleFrom(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -352,6 +344,13 @@ class _BottomSummaryActionsState extends State<BottomSummaryActions> {
                   vertical: 8,
                 ),
                 minimumSize: const Size(80, 40),
+              ),
+              child: Text(
+                'リスト追加',
+                style: TextStyle(
+                  fontSize: theme.textTheme.bodySmall?.fontSize,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
           ),
