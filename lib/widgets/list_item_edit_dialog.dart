@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:maikago/models/list.dart';
+import 'package:maikago/services/settings_persistence.dart';
 import 'package:maikago/utils/calculation_utils.dart';
 import 'package:maikago/utils/input_formatters.dart';
 import 'package:maikago/widgets/common_dialog.dart';
@@ -89,6 +90,25 @@ class _ListItemEditDialogState extends State<ListItemEditDialog> {
     setState(() {
       _name = value;
     });
+  }
+
+  Future<void> _handleSave() async {
+    final onUpdate = widget.onUpdate;
+    final isAutoCompleteEnabled = await SettingsPersistence.loadAutoComplete();
+    final shouldAutoComplete =
+        isAutoCompleteEnabled && _price > 0 && !widget.item.isChecked;
+
+    final updatedListItem = widget.item.copyWith(
+      name: _name.trim(),
+      quantity: _quantity,
+      price: _price,
+      discount: _discount,
+      isChecked: shouldAutoComplete ? true : widget.item.isChecked,
+    );
+
+    if (!mounted) return;
+    context.pop();
+    onUpdate?.call(updatedListItem);
   }
 
   void _showDeleteConfirmation(BuildContext context) {
@@ -299,18 +319,8 @@ class _ListItemEditDialogState extends State<ListItemEditDialog> {
         CommonDialog.destructiveButton(context, label: '削除', onPressed: () {
           _showDeleteConfirmation(context);
         }),
-        CommonDialog.primaryButton(context, label: '保存', onPressed: () {
-          context.pop();
-          // 更新されたアイテムを作成
-          final updatedListItem = widget.item.copyWith(
-            name: _name.trim(),
-            quantity: _quantity,
-            price: _price,
-            discount: _discount,
-          );
-          // 更新処理を実行
-          widget.onUpdate?.call(updatedListItem);
-        }),
+        CommonDialog.primaryButton(context,
+            label: '保存', onPressed: _handleSave),
       ],
     );
   }
