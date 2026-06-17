@@ -31,8 +31,14 @@ service cloud.firestore {
 
       // ユーザーの購入データのルール
       match /purchases/{purchaseId} {
-        // 認証されたユーザーは自分の購入データのみ読み書き可能
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        // 読み取りは本人のみ
+        allow read: if request.auth != null && request.auth.uid == userId;
+        // 書き込みは本人のみ。ただし premium_entitlement（サーバー検証済みの
+        // プレミアムフラグ）は Cloud Functions(admin SDK)専用とし、クライアントの
+        // 書き込みを禁止する。改竄によるプレミアム不正取得を防ぐ（Issue #163）。
+        allow write: if request.auth != null
+                        && request.auth.uid == userId
+                        && purchaseId != 'premium_entitlement';
       }
     }
 

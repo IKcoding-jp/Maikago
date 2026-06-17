@@ -158,6 +158,43 @@ class PurchasePersistence {
     }
   }
 
+  /// サーバー検証済みのプレミアムエンタイトルメントを読み込む（Issue #163）。
+  ///
+  /// Cloud Functions（admin SDK）のみが書き込む `premium_entitlement`
+  /// ドキュメントの `isPremium` を返す。これがプレミアム判定の信頼できる
+  /// 唯一のソース。存在しない・読み込み失敗時は false。
+  Future<bool> loadServerEntitlement({required String userId}) async {
+    try {
+      if (userId.isEmpty) return false;
+
+      if (kIsWeb) {
+        try {
+          if (Firebase.apps.isEmpty) return false;
+        } catch (e) {
+          return false;
+        }
+      }
+
+      final firestore = _firestore;
+      if (firestore == null) return false;
+
+      final doc = await firestore
+          .collection('users')
+          .doc(userId)
+          .collection('purchases')
+          .doc('premium_entitlement')
+          .get();
+
+      if (doc.exists) {
+        return doc.data()?['isPremium'] == true;
+      }
+      return false;
+    } catch (e) {
+      DebugService().logError('サーバーエンタイトルメント読み込みエラー: $e');
+      return false;
+    }
+  }
+
   /// Firestoreから購入データを読み込む
   ///
   /// 戻り値がnullの場合、データが存在しないか読み込みに失敗したことを示す。

@@ -12,6 +12,7 @@
     "@google-cloud/vision": "^5.3.7",
     "firebase-admin": "^13.6.1",
     "firebase-functions": "^7.2.5",
+    "googleapis": "^173.0.0",
     "openai": "^6.42.0"
   }
 }

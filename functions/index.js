@@ -5,6 +5,10 @@ const logger = require('firebase-functions/logger');
 const admin = require('firebase-admin');
 const vision = require('@google-cloud/vision');
 const openai = require('openai');
+const { verifyAndroidPurchase } = require('./purchase/android_verifier');
+const {
+  createAndroidPublisherDeps,
+} = require('./purchase/android_publisher_client');
 
 admin.initializeApp();
 
@@ -19,6 +23,23 @@ function getVisionClient() {
 
 // Secret Manager でAPIキーを管理（2nd Gen関数用）
 const openaiApiKey = defineSecret('OPENAI_API_KEY');
+
+// Google Play Developer API 用サービスアカウント鍵（JSON文字列）。
+// 購入レシート検証（Issue #163）で使用。Secret Manager で管理。
+const googlePlayServiceAccount = defineSecret('GOOGLE_PLAY_SERVICE_ACCOUNT_JSON');
+
+// Android 購入検証用クライアントを遅延初期化
+let _androidPurchaseDeps = null;
+function getAndroidPurchaseDeps() {
+  if (!_androidPurchaseDeps) {
+    // 環境変数（.env）を優先し、Secret Manager にフォールバック
+    const json =
+      process.env.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON ||
+      googlePlayServiceAccount.value();
+    _androidPurchaseDeps = createAndroidPublisherDeps(json);
+  }
+  return _androidPurchaseDeps;
+}
 
 // OpenAI APIクライアントを遅延初期化
 let _openaiClient = null;
@@ -484,5 +505,104 @@ exports.checkIngredientSimilarity = onCall(
       }
       throw new HttpsError('internal', '材料同一性判定に失敗しました。しばらくしてから再試行してください。');
     }
+  }
+);
+
+// Cloud Function: 購入レシートをサーバー側で検証する（Issue #163 対応案#1/#3）
+//
+// クライアントの PurchaseDetails を信頼せず、Google Play Developer API で
+// 購入トークンを検証する。検証成功時のみ、サーバー専用ドキュメント
+// users/{uid}/purchases/premium_entitlement に isPremium:true を書き込む
+// （admin SDK は Firestore ルールを迂回するため、クライアントは書き込めない）。
+exports.verifyPurchase = onCall(
+  { memory: '256MiB', timeoutSeconds: 30, secrets: [googlePlayServiceAccount] },
+  async (request) => {
+    // 認証チェック
+    if (!request.auth) {
+      throw new HttpsError('unauthenticated', '認証が必要です');
+    }
+
+    // レート制限チェック（既存のOCR等と共有）
+    await checkRateLimit(request.auth.uid);
+
+    const { platform, productId, purchaseToken } = request.data || {};
+    if (!platform || !productId || !purchaseToken) {
+      throw new HttpsError(
+        'invalid-argument',
+        'platform / productId / purchaseToken が必要です'
+      );
+    }
+
+    if (platform === 'ios') {
+      // TODO(#163): App Store Server API による iOS 検証は未対応。
+      // iOS リリース時に android_verifier.js と同様の ios_verifier.js を追加する。
+      throw new HttpsError('unimplemented', 'iOSのサーバー検証は未対応です');
+    }
+    if (platform !== 'android') {
+      throw new HttpsError(
+        'invalid-argument',
+        `未対応のプラットフォーム: ${platform}`
+      );
+    }
+
+    const uid = request.auth.uid;
+
+    let result;
+    try {
+      result = await verifyAndroidPurchase(
+        { productId, purchaseToken },
+        getAndroidPurchaseDeps()
+      );
+    } catch (error) {
+      // 検証ロジックは例外を握って reason に変換するため、ここに来るのは
+      // クライアント構築失敗（鍵不正）等の想定外エラーのみ。
+      logger.error('購入検証で予期せぬエラー', {
+        uid,
+        error: error.message,
+      });
+      throw new HttpsError('internal', '購入検証に失敗しました');
+    }
+
+    if (!result.valid) {
+      logger.warn('購入検証に失敗（プレミアム付与せず）', {
+        uid,
+        productId,
+        reason: result.reason,
+      });
+      // API一時障害は再試行可能なエラーとして返す
+      if (result.reason === 'api_error') {
+        throw new HttpsError(
+          'unavailable',
+          '検証サーバーに接続できませんでした。時間をおいて再試行してください'
+        );
+      }
+      throw new HttpsError('permission-denied', '購入を検証できませんでした');
+    }
+
+    // サーバー専用ドキュメントにエンタイトルメントを書き込む
+    await admin
+      .firestore()
+      .collection('users')
+      .doc(uid)
+      .collection('purchases')
+      .doc('premium_entitlement')
+      .set(
+        {
+          isPremium: true,
+          productId,
+          platform: 'android',
+          orderId: result.orderId || null,
+          verifiedAt: admin.firestore.FieldValue.serverTimestamp(),
+        },
+        { merge: true }
+      );
+
+    logger.info('購入検証成功・エンタイトルメント付与', {
+      uid,
+      productId,
+      orderId: result.orderId,
+    });
+
+    return { verified: true };
   }
 );
