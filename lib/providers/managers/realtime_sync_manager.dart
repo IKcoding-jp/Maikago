@@ -6,6 +6,7 @@ import 'package:maikago/models/list.dart';
 import 'package:maikago/models/shop.dart';
 import 'package:maikago/providers/data_provider_state.dart';
 import 'package:maikago/providers/managers/data_cache_manager.dart';
+import 'package:maikago/providers/managers/pending_update_policy.dart';
 import 'package:maikago/providers/repositories/item_repository.dart';
 import 'package:maikago/providers/repositories/shop_repository.dart';
 import 'package:maikago/services/debug_service.dart';
@@ -45,6 +46,9 @@ class RealtimeSyncManager {
   static const int _maxRetries = 5;
   Timer? _retryTimer;
 
+  // バウンス抑止ポリシー（書き込み完了ベース・issue #160）
+  static const PendingUpdatePolicy _policy = PendingUpdatePolicy();
+
   /// リアルタイム購読がアクティブかどうか
   bool get isSubscriptionActive => _isSubscriptionActive;
 
@@ -83,28 +87,15 @@ class RealtimeSyncManager {
           // バッチ更新中はリアルタイム同期を完全に無視
           if (_state.isBatchUpdating) return;
 
-          // 古い保留をクリーンアップ
-          final now = DateTime.now();
-          _itemRepository.pendingUpdates.removeWhere(
-            (_, ts) => now.difference(ts) > const Duration(seconds: 10),
+          // 直前にローカルが更新したアイテムは書き込み完了まで（＋配信遅延ぶん）
+          // ローカル版を優先する（issue #160）。
+          final merged = _mergeWithProtection<ListItem>(
+            remote: remoteItems,
+            local: _cacheManager.items,
+            idOf: (i) => i.id,
+            pendingUpdates: _itemRepository.pendingUpdates,
+            inFlightUpdates: _itemRepository.inFlightUpdates,
           );
-
-          // 直前にローカルが更新したアイテムは短時間ローカル版を優先
-          final currentLocal = List<ListItem>.from(_cacheManager.items);
-          final merged = <ListItem>[];
-          for (final remote in remoteItems) {
-            final pendingAt = _itemRepository.pendingUpdates[remote.id];
-            if (pendingAt != null &&
-                now.difference(pendingAt) < const Duration(seconds: 10)) {
-              final local = currentLocal.firstWhere(
-                (i) => i.id == remote.id,
-                orElse: () => remote,
-              );
-              merged.add(local);
-            } else {
-              merged.add(remote);
-            }
-          }
 
           _cacheManager.updateItems(merged);
           _cacheManager.associateItemsWithShops();
@@ -130,28 +121,15 @@ class RealtimeSyncManager {
           // バッチ更新中はリアルタイム同期を完全に無視
           if (_state.isBatchUpdating) return;
 
-          // 古い保留をクリーンアップ
-          final now = DateTime.now();
-          _shopRepository.pendingUpdates.removeWhere(
-            (_, ts) => now.difference(ts) > const Duration(seconds: 10),
+          // 直前にローカルが更新したショップは書き込み完了まで（＋配信遅延ぶん）
+          // ローカル版を優先する（issue #160）。
+          final merged = _mergeWithProtection<Shop>(
+            remote: remoteShops,
+            local: _cacheManager.shops,
+            idOf: (s) => s.id,
+            pendingUpdates: _shopRepository.pendingUpdates,
+            inFlightUpdates: _shopRepository.inFlightUpdates,
           );
-
-          // 直前にローカルが更新したショップは短時間ローカル版を優先
-          final currentLocal = List<Shop>.from(_cacheManager.shops);
-          final merged = <Shop>[];
-          for (final remote in remoteShops) {
-            final pendingAt = _shopRepository.pendingUpdates[remote.id];
-            if (pendingAt != null &&
-                now.difference(pendingAt) < const Duration(seconds: 10)) {
-              final local = currentLocal.firstWhere(
-                (s) => s.id == remote.id,
-                orElse: () => remote,
-              );
-              merged.add(local);
-            } else {
-              merged.add(remote);
-            }
-          }
 
           _cacheManager.updateShops(merged);
           _cacheManager.removeDuplicateShops();
@@ -177,6 +155,41 @@ class RealtimeSyncManager {
       DebugService().logError('リアルタイム同期開始エラー: $e');
       _scheduleRetry();
     }
+  }
+
+  /// リモートスナップショットを、保護中（書き込み中＋配信遅延窓）のローカル値を
+  /// 残しつつマージする。items/shops 共通処理（issue #160）。
+  ///
+  /// 副作用として、保護が切れた保留（pendingUpdates / inFlightUpdates）を
+  /// クリーンアップする。
+  List<T> _mergeWithProtection<T>({
+    required List<T> remote,
+    required List<T> local,
+    required String Function(T) idOf,
+    required Map<String, DateTime> pendingUpdates,
+    required Set<String> inFlightUpdates,
+  }) {
+    final now = DateTime.now();
+    bool isProtected(String id) => _policy.isProtected(
+          markedAt: pendingUpdates[id],
+          inFlight: inFlightUpdates.contains(id),
+          now: now,
+        );
+
+    // 保護が切れた保留をクリーンアップ（pending と in-flight の両方）
+    for (final id in pendingUpdates.keys.toList()) {
+      if (!isProtected(id)) {
+        pendingUpdates.remove(id);
+        inFlightUpdates.remove(id);
+      }
+    }
+
+    return mergePreferringProtectedLocal<T>(
+      remote: remote,
+      local: local,
+      idOf: idOf,
+      isProtected: isProtected,
+    );
   }
 
   /// リアルタイム同期の停止

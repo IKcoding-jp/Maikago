@@ -138,6 +138,7 @@ class DataProvider extends ChangeNotifier {
     _cacheManager.clearData();
     _cacheManager.clearLastSyncTime();
     _itemRepository.pendingUpdates.clear();
+    _itemRepository.inFlightUpdates.clear();
 
     _state.isSynced = false;
     _cacheManager.setLocalMode(false);
@@ -501,6 +502,7 @@ class DataProvider extends ChangeNotifier {
 
     _cacheManager.clearData();
     _itemRepository.pendingUpdates.clear();
+    _itemRepository.inFlightUpdates.clear();
 
     _state.isSynced = false;
     final isLoggedIn = _authProvider?.isLoggedIn ?? false;

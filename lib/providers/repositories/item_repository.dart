@@ -29,6 +29,11 @@ class ItemRepository {
   /// 直近で更新を行ったアイテムのIDとタイムスタンプ（楽観更新のバウンス抑止）
   final Map<String, DateTime> pendingUpdates = {};
 
+  /// Firebaseへの書き込みがまだ完了していないアイテムID（issue #160）。
+  /// in-flightの間は経過時間に関係なくローカルを優先し、書き込み遅延が
+  /// 長くても自分の直前の編集が古いスナップショットで巻き戻らないようにする。
+  final Set<String> inFlightUpdates = {};
+
   // --- アイテム追加 ---
 
   Future<void> addItem(ListItem item) async {
@@ -103,8 +108,9 @@ class ItemRepository {
   // --- アイテム更新 ---
 
   Future<void> updateItem(ListItem item) async {
-    // バウンス抑止のため保留中リストに追加
+    // バウンス抑止：保護開始＋書き込み中フラグ（issue #160）
     pendingUpdates[item.id] = DateTime.now();
+    inFlightUpdates.add(item.id);
 
     // 楽観的更新：UIを即座に更新
     _cacheManager.updateItemInCache(item);
@@ -132,13 +138,22 @@ class ItemRepository {
           item,
           isAnonymous: _state.shouldUseAnonymousSession,
         );
+        // issue #160: 書き込み完了。配信遅延の窓を完了時刻から測り直し、
+        // 書き込み中フラグを解除する。
+        pendingUpdates[item.id] = DateTime.now();
+        inFlightUpdates.remove(item.id);
         _state.isSynced = true;
       } catch (e) {
+        // 書き込み失敗：in-flightを解除し恒久ロックを防ぐ（保護は時間窓で自然失効）。
+        inFlightUpdates.remove(item.id);
         _state.isSynced = false;
         DebugService().logError('Firebase更新エラー: $e');
 
         throw convertToAppException(e, contextMessage: 'アイテムの更新');
       }
+    } else {
+      // ローカルモードは書き込みが無いので即完了扱い。
+      inFlightUpdates.remove(item.id);
     }
   }
 
