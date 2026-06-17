@@ -136,8 +136,12 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
       loadSavedTabIndex();
       final dataProvider = context.read<DataProvider>();
       final authProvider = context.read<AuthProvider>();
-      dataProvider.setAuthProvider(authProvider);
+      // リスナーを先に登録してから setAuthProvider を呼ぶ（同期通知を取りこぼさないため）
       dataProvider.addListener(_onDataProviderChanged);
+      dataProvider.setAuthProvider(authProvider);
+      // データが既にロード済みの場合（setAuthProvider が早期リターンするケース等）に
+      // TabController の length を即時同期する
+      _onDataProviderChanged();
     });
   }
 
@@ -353,7 +357,9 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
             drawerTextColor:
                 currentTheme == 'dark' ? theme.colorScheme.onPrimary : null,
             onCustomColorsChanged: updateCustomColors,
-            onSettingsReturned: () {},
+            onSettingsReturned: () {
+              _loadStrikethroughSetting();
+            },
           ),
           body: ItemListSection(
             shop: shop,
