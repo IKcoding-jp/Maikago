@@ -72,6 +72,14 @@ class SharedTabManager {
     final removedTabIds =
         previousSharedTabs.where((id) => !selectedTabIds.contains(id)).toList();
 
+    // Issue #159: 失敗時に巻き戻すため、関係ショップの更新前状態を退避する
+    final involvedIds = <String>{
+      shopId,
+      ...selectedTabIds,
+      ...previousSharedTabs
+    };
+    final originalById = _snapshot(involvedIds);
+
     final updatedShop = currentShop.copyWith(
       name: name ?? currentShop.name,
       sharedTabs: selectedTabIds,
@@ -133,39 +141,28 @@ class SharedTabManager {
     _state.notifyListeners();
 
     if (!_cacheManager.isLocalMode) {
+      // 更新対象（自身 + 解除タブ + 選択タブ）を集めて1回のバッチで保存する
+      final idsToPersist = <String>{
+        shopId,
+        ...removedTabIds,
+        ...selectedTabIds
+      };
+      final shopsToPersist = _collectShops(idsToPersist);
+
       try {
-        await _dataService.updateShop(
-          updatedShop,
+        await _dataService.updateShopsBatch(
+          shopsToPersist,
           isAnonymous: _state.shouldUseAnonymousSession,
         );
-
-        for (final removedTabId in removedTabIds) {
-          final removedTabIndex =
-              _cacheManager.shops.indexWhere((shop) => shop.id == removedTabId);
-          if (removedTabIndex != -1) {
-            await _dataService.updateShop(
-              _cacheManager.shops[removedTabIndex],
-              isAnonymous: _state.shouldUseAnonymousSession,
-            );
-          }
-        }
-
-        for (final tabId in selectedTabIds) {
-          final tabIndex =
-              _cacheManager.shops.indexWhere((shop) => shop.id == tabId);
-          if (tabIndex != -1) {
-            await _dataService.updateShop(
-              _cacheManager.shops[tabIndex],
-              isAnonymous: _state.shouldUseAnonymousSession,
-            );
-          }
-        }
 
         _state.isSynced = true;
         DebugService().logInfo('共有タブ更新完了: ショップID=$shopId');
       } catch (e) {
         _state.isSynced = false;
         DebugService().logError('共有タブ更新エラー: $e');
+        // Issue #159: 途中失敗時は全ショップを更新前へ巻き戻す
+        _rollback(originalById, involvedIds);
+        _state.notifyListeners();
         rethrow;
       }
     }
@@ -188,6 +185,15 @@ class SharedTabManager {
         }
       }
     }
+
+    // Issue #159: 失敗時に巻き戻すため、関係ショップの更新前状態を退避する
+    final involvedIds = <String>{shopId};
+    for (final shop in _cacheManager.shops) {
+      if (shop.id != shopId && shop.sharedTabs.contains(shopId)) {
+        involvedIds.add(shop.id);
+      }
+    }
+    final originalById = _snapshot(involvedIds);
 
     final updatedShop = currentShop.copyWith(
       name: name ?? currentShop.name,
@@ -218,27 +224,24 @@ class SharedTabManager {
     _state.notifyListeners();
 
     if (!_cacheManager.isLocalMode) {
+      // 離脱ショップ + 参照を外した関係ショップを1回のバッチで保存する
+      final idsToPersist = <String>{shopId, ...affectedShopIds};
+      final shopsToPersist = _collectShops(idsToPersist);
+
       try {
-        await _dataService.updateShop(
-          updatedShop,
+        await _dataService.updateShopsBatch(
+          shopsToPersist,
           isAnonymous: _state.shouldUseAnonymousSession,
         );
-
-        for (final affectedId in affectedShopIds) {
-          final affectedIndex =
-              _cacheManager.shops.indexWhere((shop) => shop.id == affectedId);
-          if (affectedIndex == -1) continue;
-          await _dataService.updateShop(
-            _cacheManager.shops[affectedIndex],
-            isAnonymous: _state.shouldUseAnonymousSession,
-          );
-        }
 
         _state.isSynced = true;
         DebugService().logInfo('共有タブから離脱完了: ショップID=$shopId');
       } catch (e) {
         _state.isSynced = false;
         DebugService().logError('共有タブ削除エラー: $e');
+        // Issue #159: 途中失敗時は全ショップを更新前へ巻き戻す
+        _rollback(originalById, involvedIds);
+        _state.notifyListeners();
         rethrow;
       }
     }
@@ -249,6 +252,10 @@ class SharedTabManager {
     final sharedShops = _cacheManager.shops
         .where((shop) => shop.sharedTabGroupId == sharedTabGroupId)
         .toList();
+
+    // Issue #159: 失敗時に巻き戻すため、関係ショップの更新前状態を退避する
+    final involvedIds = sharedShops.map((shop) => shop.id).toSet();
+    final originalById = _snapshot(involvedIds);
 
     for (final shop in sharedShops) {
       final updatedShop = (newBudget == null || newBudget == 0)
@@ -263,22 +270,61 @@ class SharedTabManager {
     _state.notifyListeners();
 
     if (!_cacheManager.isLocalMode) {
+      final shopsToPersist = _collectShops(involvedIds);
+
       try {
-        for (final shop in sharedShops) {
-          final updatedShop =
-              _cacheManager.shops.firstWhere((s) => s.id == shop.id);
-          await _dataService.updateShop(
-            updatedShop,
-            isAnonymous: _state.shouldUseAnonymousSession,
-          );
-        }
+        await _dataService.updateShopsBatch(
+          shopsToPersist,
+          isAnonymous: _state.shouldUseAnonymousSession,
+        );
 
         _state.isSynced = true;
       } catch (e) {
         _state.isSynced = false;
         DebugService().logError('共有タブ予算同期エラー: $e');
+        // Issue #159: 途中失敗時は全ショップを更新前へ巻き戻す
+        _rollback(originalById, involvedIds);
+        _state.notifyListeners();
         rethrow;
       }
+    }
+  }
+
+  // --- Issue #159: 原子的更新の補助メソッド ---
+
+  /// 指定IDの現在のショップ状態（更新前）を退避する。
+  Map<String, Shop> _snapshot(Iterable<String> ids) {
+    final result = <String, Shop>{};
+    for (final id in ids) {
+      final index = _cacheManager.shops.indexWhere((shop) => shop.id == id);
+      if (index != -1) {
+        result[id] = _cacheManager.shops[index];
+      }
+    }
+    return result;
+  }
+
+  /// 指定IDの現在のショップをキャッシュから集めてリスト化する（バッチ保存用）。
+  List<Shop> _collectShops(Iterable<String> ids) {
+    final result = <Shop>[];
+    for (final id in ids) {
+      final index = _cacheManager.shops.indexWhere((shop) => shop.id == id);
+      if (index != -1) {
+        result.add(_cacheManager.shops[index]);
+      }
+    }
+    return result;
+  }
+
+  /// 退避しておいた状態へキャッシュを巻き戻し、保留中フラグも除去する。
+  void _rollback(Map<String, Shop> originalById, Iterable<String> involvedIds) {
+    for (final id in involvedIds) {
+      final original = originalById[id];
+      final index = _cacheManager.shops.indexWhere((shop) => shop.id == id);
+      if (index != -1 && original != null) {
+        _cacheManager.shops[index] = original;
+      }
+      _shopRepository.pendingUpdates.remove(id);
     }
   }
 }

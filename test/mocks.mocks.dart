@@ -3,12 +3,15 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i3;
+import 'dart:async' as _i5;
 
-import 'package:maikago/models/list.dart' as _i4;
-import 'package:maikago/models/shop.dart' as _i5;
-import 'package:maikago/services/data_service.dart' as _i2;
+import 'package:cloud_firestore/cloud_firestore.dart' as _i2;
+import 'package:firebase_auth/firebase_auth.dart' as _i3;
+import 'package:maikago/models/list.dart' as _i7;
+import 'package:maikago/models/shop.dart' as _i8;
+import 'package:maikago/services/data_service.dart' as _i4;
 import 'package:mockito/mockito.dart' as _i1;
+import 'package:mockito/src/dummies.dart' as _i6;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -25,17 +28,180 @@ import 'package:mockito/mockito.dart' as _i1;
 // ignore_for_file: subtype_of_sealed_class
 // ignore_for_file: invalid_use_of_internal_member
 
+class _FakeFirebaseFirestore_0 extends _i1.SmartFake
+    implements _i2.FirebaseFirestore {
+  _FakeFirebaseFirestore_0(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeFirebaseAuth_1 extends _i1.SmartFake implements _i3.FirebaseAuth {
+  _FakeFirebaseAuth_1(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeCollectionReference_2<T extends Object?> extends _i1.SmartFake
+    implements _i2.CollectionReference<T> {
+  _FakeCollectionReference_2(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
 /// A class which mocks [DataService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockDataService extends _i1.Mock implements _i2.DataService {
+class MockDataService extends _i1.Mock implements _i4.DataService {
   MockDataService() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i3.Future<void> saveItem(
-    _i4.ListItem? item, {
+  _i2.FirebaseFirestore get firestore => (super.noSuchMethod(
+        Invocation.getter(#firestore),
+        returnValue: _FakeFirebaseFirestore_0(
+          this,
+          Invocation.getter(#firestore),
+        ),
+      ) as _i2.FirebaseFirestore);
+
+  @override
+  _i3.FirebaseAuth get auth => (super.noSuchMethod(
+        Invocation.getter(#auth),
+        returnValue: _FakeFirebaseAuth_1(
+          this,
+          Invocation.getter(#auth),
+        ),
+      ) as _i3.FirebaseAuth);
+
+  @override
+  bool get isFirebaseAvailable => (super.noSuchMethod(
+        Invocation.getter(#isFirebaseAvailable),
+        returnValue: false,
+      ) as bool);
+
+  @override
+  _i2.CollectionReference<Map<String, dynamic>> get userItemsCollection =>
+      (super.noSuchMethod(
+        Invocation.getter(#userItemsCollection),
+        returnValue: _FakeCollectionReference_2<Map<String, dynamic>>(
+          this,
+          Invocation.getter(#userItemsCollection),
+        ),
+      ) as _i2.CollectionReference<Map<String, dynamic>>);
+
+  @override
+  _i2.CollectionReference<Map<String, dynamic>> get userShopsCollection =>
+      (super.noSuchMethod(
+        Invocation.getter(#userShopsCollection),
+        returnValue: _FakeCollectionReference_2<Map<String, dynamic>>(
+          this,
+          Invocation.getter(#userShopsCollection),
+        ),
+      ) as _i2.CollectionReference<Map<String, dynamic>>);
+
+  @override
+  _i5.Future<_i2.CollectionReference<Map<String, dynamic>>>
+      get anonymousItemsCollection => (super.noSuchMethod(
+            Invocation.getter(#anonymousItemsCollection),
+            returnValue:
+                _i5.Future<_i2.CollectionReference<Map<String, dynamic>>>.value(
+                    _FakeCollectionReference_2<Map<String, dynamic>>(
+              this,
+              Invocation.getter(#anonymousItemsCollection),
+            )),
+          ) as _i5.Future<_i2.CollectionReference<Map<String, dynamic>>>);
+
+  @override
+  _i5.Future<_i2.CollectionReference<Map<String, dynamic>>>
+      get anonymousShopsCollection => (super.noSuchMethod(
+            Invocation.getter(#anonymousShopsCollection),
+            returnValue:
+                _i5.Future<_i2.CollectionReference<Map<String, dynamic>>>.value(
+                    _FakeCollectionReference_2<Map<String, dynamic>>(
+              this,
+              Invocation.getter(#anonymousShopsCollection),
+            )),
+          ) as _i5.Future<_i2.CollectionReference<Map<String, dynamic>>>);
+
+  @override
+  _i5.Future<void> saveUserProfile(Map<String, dynamic>? profile) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #saveUserProfile,
+          [profile],
+        ),
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
+
+  @override
+  _i5.Future<Map<String, dynamic>?> getUserProfile() => (super.noSuchMethod(
+        Invocation.method(
+          #getUserProfile,
+          [],
+        ),
+        returnValue: _i5.Future<Map<String, dynamic>?>.value(),
+      ) as _i5.Future<Map<String, dynamic>?>);
+
+  @override
+  _i5.Future<bool> isDataSynced() => (super.noSuchMethod(
+        Invocation.method(
+          #isDataSynced,
+          [],
+        ),
+        returnValue: _i5.Future<bool>.value(false),
+      ) as _i5.Future<bool>);
+
+  @override
+  _i5.Future<void> clearAnonymousSession() => (super.noSuchMethod(
+        Invocation.method(
+          #clearAnonymousSession,
+          [],
+        ),
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
+
+  @override
+  _i5.Future<bool> isFirebaseConnected() => (super.noSuchMethod(
+        Invocation.method(
+          #isFirebaseConnected,
+          [],
+        ),
+        returnValue: _i5.Future<bool>.value(false),
+      ) as _i5.Future<bool>);
+
+  @override
+  _i5.Future<String> getAnonymousSessionId() => (super.noSuchMethod(
+        Invocation.method(
+          #getAnonymousSessionId,
+          [],
+        ),
+        returnValue: _i5.Future<String>.value(_i6.dummyValue<String>(
+          this,
+          Invocation.method(
+            #getAnonymousSessionId,
+            [],
+          ),
+        )),
+      ) as _i5.Future<String>);
+
+  @override
+  _i5.Future<void> saveItem(
+    _i7.ListItem? item, {
     bool? isAnonymous = false,
   }) =>
       (super.noSuchMethod(
@@ -44,13 +210,13 @@ class MockDataService extends _i1.Mock implements _i2.DataService {
           [item],
           {#isAnonymous: isAnonymous},
         ),
-        returnValue: _i3.Future<void>.value(),
-        returnValueForMissingStub: _i3.Future<void>.value(),
-      ) as _i3.Future<void>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
 
   @override
-  _i3.Future<void> updateItem(
-    _i4.ListItem? item, {
+  _i5.Future<void> updateItem(
+    _i7.ListItem? item, {
     bool? isAnonymous = false,
   }) =>
       (super.noSuchMethod(
@@ -59,12 +225,12 @@ class MockDataService extends _i1.Mock implements _i2.DataService {
           [item],
           {#isAnonymous: isAnonymous},
         ),
-        returnValue: _i3.Future<void>.value(),
-        returnValueForMissingStub: _i3.Future<void>.value(),
-      ) as _i3.Future<void>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
 
   @override
-  _i3.Future<void> deleteItem(
+  _i5.Future<void> deleteItem(
     String? itemId, {
     bool? isAnonymous = false,
   }) =>
@@ -74,35 +240,35 @@ class MockDataService extends _i1.Mock implements _i2.DataService {
           [itemId],
           {#isAnonymous: isAnonymous},
         ),
-        returnValue: _i3.Future<void>.value(),
-        returnValueForMissingStub: _i3.Future<void>.value(),
-      ) as _i3.Future<void>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
 
   @override
-  _i3.Stream<List<_i4.ListItem>> getItems({bool? isAnonymous = false}) =>
+  _i5.Stream<List<_i7.ListItem>> getItems({bool? isAnonymous = false}) =>
       (super.noSuchMethod(
         Invocation.method(
           #getItems,
           [],
           {#isAnonymous: isAnonymous},
         ),
-        returnValue: _i3.Stream<List<_i4.ListItem>>.empty(),
-      ) as _i3.Stream<List<_i4.ListItem>>);
+        returnValue: _i5.Stream<List<_i7.ListItem>>.empty(),
+      ) as _i5.Stream<List<_i7.ListItem>>);
 
   @override
-  _i3.Future<List<_i4.ListItem>> getItemsOnce({bool? isAnonymous = false}) =>
+  _i5.Future<List<_i7.ListItem>> getItemsOnce({bool? isAnonymous = false}) =>
       (super.noSuchMethod(
         Invocation.method(
           #getItemsOnce,
           [],
           {#isAnonymous: isAnonymous},
         ),
-        returnValue: _i3.Future<List<_i4.ListItem>>.value(<_i4.ListItem>[]),
-      ) as _i3.Future<List<_i4.ListItem>>);
+        returnValue: _i5.Future<List<_i7.ListItem>>.value(<_i7.ListItem>[]),
+      ) as _i5.Future<List<_i7.ListItem>>);
 
   @override
-  _i3.Future<void> saveShop(
-    _i5.Shop? shop, {
+  _i5.Future<void> saveShop(
+    _i8.Shop? shop, {
     bool? isAnonymous = false,
   }) =>
       (super.noSuchMethod(
@@ -111,13 +277,13 @@ class MockDataService extends _i1.Mock implements _i2.DataService {
           [shop],
           {#isAnonymous: isAnonymous},
         ),
-        returnValue: _i3.Future<void>.value(),
-        returnValueForMissingStub: _i3.Future<void>.value(),
-      ) as _i3.Future<void>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
 
   @override
-  _i3.Future<void> updateShop(
-    _i5.Shop? shop, {
+  _i5.Future<void> updateShop(
+    _i8.Shop? shop, {
     bool? isAnonymous = false,
   }) =>
       (super.noSuchMethod(
@@ -126,12 +292,27 @@ class MockDataService extends _i1.Mock implements _i2.DataService {
           [shop],
           {#isAnonymous: isAnonymous},
         ),
-        returnValue: _i3.Future<void>.value(),
-        returnValueForMissingStub: _i3.Future<void>.value(),
-      ) as _i3.Future<void>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
 
   @override
-  _i3.Future<void> deleteShop(
+  _i5.Future<void> updateShopsBatch(
+    List<_i8.Shop>? shops, {
+    bool? isAnonymous = false,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateShopsBatch,
+          [shops],
+          {#isAnonymous: isAnonymous},
+        ),
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
+
+  @override
+  _i5.Future<void> deleteShop(
     String? shopId, {
     bool? isAnonymous = false,
   }) =>
@@ -141,68 +322,29 @@ class MockDataService extends _i1.Mock implements _i2.DataService {
           [shopId],
           {#isAnonymous: isAnonymous},
         ),
-        returnValue: _i3.Future<void>.value(),
-        returnValueForMissingStub: _i3.Future<void>.value(),
-      ) as _i3.Future<void>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
 
   @override
-  _i3.Stream<List<_i5.Shop>> getShops({bool? isAnonymous = false}) =>
+  _i5.Stream<List<_i8.Shop>> getShops({bool? isAnonymous = false}) =>
       (super.noSuchMethod(
         Invocation.method(
           #getShops,
           [],
           {#isAnonymous: isAnonymous},
         ),
-        returnValue: _i3.Stream<List<_i5.Shop>>.empty(),
-      ) as _i3.Stream<List<_i5.Shop>>);
+        returnValue: _i5.Stream<List<_i8.Shop>>.empty(),
+      ) as _i5.Stream<List<_i8.Shop>>);
 
   @override
-  _i3.Future<List<_i5.Shop>> getShopsOnce({bool? isAnonymous = false}) =>
+  _i5.Future<List<_i8.Shop>> getShopsOnce({bool? isAnonymous = false}) =>
       (super.noSuchMethod(
         Invocation.method(
           #getShopsOnce,
           [],
           {#isAnonymous: isAnonymous},
         ),
-        returnValue: _i3.Future<List<_i5.Shop>>.value(<_i5.Shop>[]),
-      ) as _i3.Future<List<_i5.Shop>>);
-
-  @override
-  _i3.Future<void> saveUserProfile(Map<String, dynamic>? profile) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #saveUserProfile,
-          [profile],
-        ),
-        returnValue: _i3.Future<void>.value(),
-        returnValueForMissingStub: _i3.Future<void>.value(),
-      ) as _i3.Future<void>);
-
-  @override
-  _i3.Future<Map<String, dynamic>?> getUserProfile() => (super.noSuchMethod(
-        Invocation.method(
-          #getUserProfile,
-          [],
-        ),
-        returnValue: _i3.Future<Map<String, dynamic>?>.value(),
-      ) as _i3.Future<Map<String, dynamic>?>);
-
-  @override
-  _i3.Future<bool> isDataSynced() => (super.noSuchMethod(
-        Invocation.method(
-          #isDataSynced,
-          [],
-        ),
-        returnValue: _i3.Future<bool>.value(false),
-      ) as _i3.Future<bool>);
-
-  @override
-  _i3.Future<void> clearAnonymousSession() => (super.noSuchMethod(
-        Invocation.method(
-          #clearAnonymousSession,
-          [],
-        ),
-        returnValue: _i3.Future<void>.value(),
-        returnValueForMissingStub: _i3.Future<void>.value(),
-      ) as _i3.Future<void>);
+        returnValue: _i5.Future<List<_i8.Shop>>.value(<_i8.Shop>[]),
+      ) as _i5.Future<List<_i8.Shop>>);
 }

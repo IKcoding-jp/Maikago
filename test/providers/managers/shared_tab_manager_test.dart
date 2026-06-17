@@ -13,8 +13,11 @@ class FakeDataCacheManager implements DataCacheManager {
   @override
   List<Shop> shops = [];
 
+  // テストで Firestore 永続化経路を通すため切替可能にする（既定はローカル）
+  bool localMode = true;
+
   @override
-  bool get isLocalMode => true;
+  bool get isLocalMode => localMode;
 
   // テスト不要のメソッドは空実装
   @override
@@ -53,9 +56,24 @@ class FakeDataProviderState implements DataProviderState {
 class FakeDataService implements DataService {
   final List<Shop> updatedShops = [];
 
+  // updateShopsBatch の呼び出し履歴（各要素が1回のバッチで渡されたショップ群）
+  final List<List<Shop>> batchCalls = [];
+
+  // true のときバッチ commit を失敗させ、途中失敗を再現する
+  bool failBatch = false;
+
   @override
   Future<void> updateShop(Shop shop, {bool isAnonymous = false}) async {
     updatedShops.add(shop);
+  }
+
+  @override
+  Future<void> updateShopsBatch(List<Shop> shops,
+      {bool isAnonymous = false}) async {
+    batchCalls.add(List<Shop>.of(shops));
+    if (failBatch) {
+      throw Exception('batch commit failed');
+    }
   }
 
   @override
@@ -492,6 +510,201 @@ void main() {
       await manager.syncSharedTabBudget('group_1', 1000);
 
       expect(state.notifyCount, greaterThan(0));
+    });
+  });
+
+  // Issue #159: 共有タブのグループ更新を WriteBatch で原子化し、
+  // 途中失敗時はローカルキャッシュを更新前に巻き戻す
+  group('updateSharedTab - 原子性とロールバック（Issue #159）', () {
+    setUp(() {
+      // クラウドモードにして Firestore 永続化経路を通す
+      cacheManager.localMode = false;
+    });
+
+    test('成功時は順次updateShopではなくバッチ1回でまとめて保存する', () async {
+      cacheManager.shops = [
+        createSampleShop(id: 'a', name: 'A'),
+        createSampleShop(id: 'b', name: 'B'),
+        createSampleShop(id: 'c', name: 'C'),
+      ];
+
+      await manager.updateSharedTab('a', ['b', 'c']);
+
+      // 順次 updateShop は使わない（部分書き込みを防ぐため）
+      expect(dataService.updatedShops, isEmpty);
+      // バッチは1回だけ呼ばれ、3ショップ全てを含む
+      expect(dataService.batchCalls.length, 1);
+      expect(
+        dataService.batchCalls.first.map((s) => s.id).toSet(),
+        {'a', 'b', 'c'},
+      );
+    });
+
+    test('バッチ失敗時に全ショップが更新前の状態へ巻き戻る', () async {
+      cacheManager.shops = [
+        createSampleShop(id: 'a', name: 'A'),
+        createSampleShop(id: 'b', name: 'B'),
+        createSampleShop(id: 'c', name: 'C'),
+      ];
+      dataService.failBatch = true;
+
+      // 失敗は呼び出し側へ伝播する
+      await expectLater(
+        manager.updateSharedTab('a', ['b', 'c']),
+        throwsA(isA<Exception>()),
+      );
+
+      // 3ショップとも共有設定が付かず、更新前（未共有）に戻っている
+      for (final shop in cacheManager.shops) {
+        expect(shop.sharedTabs, isEmpty, reason: '${shop.id} の sharedTabs');
+        expect(shop.sharedTabGroupId, isNull, reason: '${shop.id} の groupId');
+      }
+    });
+
+    test('バッチ失敗時は isSynced=false かつ pendingUpdates がクリアされる', () async {
+      cacheManager.shops = [
+        createSampleShop(id: 'a', name: 'A'),
+        createSampleShop(id: 'b', name: 'B'),
+      ];
+      dataService.failBatch = true;
+
+      await expectLater(
+        manager.updateSharedTab('a', ['b']),
+        throwsA(isA<Exception>()),
+      );
+
+      expect(state.isSynced, false);
+      expect(shopRepository.pendingUpdates.containsKey('a'), false);
+      expect(shopRepository.pendingUpdates.containsKey('b'), false);
+    });
+
+    test('グループ解除の途中失敗でも元の共有状態へ巻き戻る', () async {
+      cacheManager.shops = [
+        createSampleShop(
+          id: 'shop1',
+          sharedTabGroupId: 'group_1',
+          sharedTabs: ['shop2'],
+        ),
+        createSampleShop(
+          id: 'shop2',
+          sharedTabGroupId: 'group_1',
+          sharedTabs: ['shop1'],
+        ),
+      ];
+      dataService.failBatch = true;
+
+      await expectLater(
+        manager.updateSharedTab('shop1', []),
+        throwsA(isA<Exception>()),
+      );
+
+      // 解除前の共有関係が維持されている
+      expect(cacheManager.shops[0].sharedTabGroupId, 'group_1');
+      expect(cacheManager.shops[0].sharedTabs, ['shop2']);
+      expect(cacheManager.shops[1].sharedTabGroupId, 'group_1');
+      expect(cacheManager.shops[1].sharedTabs, ['shop1']);
+    });
+  });
+
+  group('removeFromSharedTab - 原子性とロールバック（Issue #159）', () {
+    setUp(() {
+      cacheManager.localMode = false;
+    });
+
+    test('成功時はバッチ1回で関係ショップをまとめて保存する', () async {
+      cacheManager.shops = [
+        createSampleShop(
+          id: 'a',
+          sharedTabGroupId: 'g',
+          sharedTabs: ['b', 'c'],
+        ),
+        createSampleShop(
+          id: 'b',
+          sharedTabGroupId: 'g',
+          sharedTabs: ['a', 'c'],
+        ),
+        createSampleShop(
+          id: 'c',
+          sharedTabGroupId: 'g',
+          sharedTabs: ['a', 'b'],
+        ),
+      ];
+
+      await manager.removeFromSharedTab('a');
+
+      expect(dataService.updatedShops, isEmpty);
+      expect(dataService.batchCalls.length, 1);
+      expect(
+        dataService.batchCalls.first.map((s) => s.id).toSet(),
+        {'a', 'b', 'c'},
+      );
+    });
+
+    test('バッチ失敗時は離脱前の共有関係へ巻き戻る', () async {
+      cacheManager.shops = [
+        createSampleShop(
+          id: 'a',
+          sharedTabGroupId: 'g',
+          sharedTabs: ['b'],
+        ),
+        createSampleShop(
+          id: 'b',
+          sharedTabGroupId: 'g',
+          sharedTabs: ['a'],
+        ),
+      ];
+      dataService.failBatch = true;
+
+      await expectLater(
+        manager.removeFromSharedTab('a'),
+        throwsA(isA<Exception>()),
+      );
+
+      expect(cacheManager.shops[0].sharedTabs, ['b']);
+      expect(cacheManager.shops[0].sharedTabGroupId, 'g');
+      expect(cacheManager.shops[1].sharedTabs, ['a']);
+      expect(state.isSynced, false);
+    });
+  });
+
+  group('syncSharedTabBudget - 原子性とロールバック（Issue #159）', () {
+    setUp(() {
+      cacheManager.localMode = false;
+    });
+
+    test('成功時はバッチ1回でグループ全メンバーを保存する', () async {
+      cacheManager.shops = [
+        createSampleShop(id: 'shop1', sharedTabGroupId: 'group_1'),
+        createSampleShop(id: 'shop2', sharedTabGroupId: 'group_1'),
+      ];
+
+      await manager.syncSharedTabBudget('group_1', 5000);
+
+      expect(dataService.updatedShops, isEmpty);
+      expect(dataService.batchCalls.length, 1);
+      expect(
+        dataService.batchCalls.first.map((s) => s.id).toSet(),
+        {'shop1', 'shop2'},
+      );
+    });
+
+    test('バッチ失敗時は予算が元の値へ巻き戻る', () async {
+      cacheManager.shops = [
+        createSampleShop(
+            id: 'shop1', sharedTabGroupId: 'group_1', budget: 3000),
+        createSampleShop(
+            id: 'shop2', sharedTabGroupId: 'group_1', budget: 3000),
+      ];
+      dataService.failBatch = true;
+
+      await expectLater(
+        manager.syncSharedTabBudget('group_1', 9000),
+        throwsA(isA<Exception>()),
+      );
+
+      expect(cacheManager.shops[0].budget, 3000);
+      expect(cacheManager.shops[1].budget, 3000);
+      expect(state.isSynced, false);
     });
   });
 }
