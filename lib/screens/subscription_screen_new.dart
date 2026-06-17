@@ -4,10 +4,10 @@ import 'package:maikago/models/one_time_purchase.dart';
 import 'package:maikago/providers/auth_provider.dart';
 import 'package:maikago/services/one_time_purchase_service.dart';
 import 'package:maikago/services/debug_service.dart';
-import 'package:maikago/widgets/common_dialog.dart';
 import 'package:maikago/utils/snackbar_utils.dart';
 import 'package:go_router/go_router.dart';
 import 'package:maikago/utils/theme_utils.dart';
+import 'package:maikago/screens/widgets/subscription_debug_dialog.dart';
 
 class SubscriptionScreen extends StatefulWidget {
   const SubscriptionScreen({super.key});
@@ -46,7 +46,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
           if (DebugService().enableDebugMode)
             IconButton(
               icon: const Icon(Icons.bug_report),
-              onPressed: () => _showDebugDialog(context),
+              onPressed: () => showSubscriptionDebugDialog(context),
             ),
         ],
       ),
@@ -462,38 +462,5 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
         });
       }
     }
-  }
-
-  /// デバッグダイアログを表示
-  void _showDebugDialog(BuildContext context) {
-    CommonDialog.show(
-      context: context,
-      builder: (context) => CommonDialog(
-        title: 'デバッグ情報',
-        content: Consumer<OneTimePurchaseService>(
-          builder: (context, service, child) {
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('まいかごプレミアム: ${service.isPremiumUnlocked}'),
-                Text('ストア利用可能: ${service.isStoreAvailable}'),
-                if (service.error != null) Text('エラー: ${service.error}'),
-              ],
-            );
-          },
-        ),
-        actions: [
-          CommonDialog.closeButton(context),
-          CommonDialog.primaryButton(context, label: '購入復元',
-              onPressed: () async {
-            final service =
-                Provider.of<OneTimePurchaseService>(context, listen: false);
-            await service.restorePurchases();
-            context.pop();
-          }),
-        ],
-      ),
-    );
   }
 }
