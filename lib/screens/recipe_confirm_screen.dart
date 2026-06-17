@@ -270,12 +270,9 @@ class _RecipeConfirmScreenState extends State<RecipeConfirmScreen> {
                           required isFocused,
                           maxLength}) =>
                       null,
-                  decoration: const InputDecoration(
+                  decoration: CommonDialog.textFieldDecoration(
+                    context,
                     hintText: 'レシピの名称（例: 肉じゃが）',
-                    isDense: true,
-                    contentPadding:
-                        EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-                    border: OutlineInputBorder(),
                   ),
                 ),
               ),
@@ -313,18 +310,9 @@ class _RecipeConfirmScreenState extends State<RecipeConfirmScreen> {
           Row(
             children: [
               const Text('方式 : '),
-              ChoiceChip(
-                label: const Text('追記'),
-                selected: _addMode == AddMode.append,
-                onSelected: (val) => setState(() => _addMode = AddMode.append),
-              ),
+              _modeChip('追記', AddMode.append),
               const SizedBox(width: 8),
-              ChoiceChip(
-                label: const Text('統合'),
-                selected: _addMode == AddMode.integrate,
-                onSelected: (val) =>
-                    setState(() => _addMode = AddMode.integrate),
-              ),
+              _modeChip('統合', AddMode.integrate),
             ],
           ),
           const SizedBox(height: 8),
@@ -379,6 +367,9 @@ class _RecipeConfirmScreenState extends State<RecipeConfirmScreen> {
               ),
               TextButton(
                   onPressed: () => _editIngredient(index),
+                  style: TextButton.styleFrom(
+                    foregroundColor: Theme.of(context).colorScheme.onSurface,
+                  ),
                   child: const Text('編集')),
               IconButton(
                   onPressed: () => _deleteIngredient(index),
@@ -440,6 +431,26 @@ class _RecipeConfirmScreenState extends State<RecipeConfirmScreen> {
     );
   }
 
+  Widget _modeChip(String label, AddMode mode) {
+    final selected = _addMode == mode;
+    final colorScheme = Theme.of(context).colorScheme;
+    return ChoiceChip(
+      label: Text(label),
+      selected: selected,
+      selectedColor: colorScheme.primary,
+      backgroundColor: colorScheme.surface,
+      side: BorderSide(
+        color: selected ? colorScheme.primary : colorScheme.outline,
+      ),
+      labelStyle: TextStyle(
+        color: selected ? colorScheme.onPrimary : colorScheme.onSurface,
+        fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+      ),
+      showCheckmark: false,
+      onSelected: (_) => setState(() => _addMode = mode),
+    );
+  }
+
   Widget _buildFooter() {
     return Container(
       decoration: BoxDecoration(
@@ -461,7 +472,15 @@ class _RecipeConfirmScreenState extends State<RecipeConfirmScreen> {
                 child: OutlinedButton(
                   onPressed: () => context.pop(),
                   style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16)),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    foregroundColor: Theme.of(context).colorScheme.onSurface,
+                    side: BorderSide(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.4),
+                    ),
+                  ),
                   child: const Text('戻る'),
                 ),
               ),

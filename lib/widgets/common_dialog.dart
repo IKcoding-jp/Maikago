@@ -187,6 +187,7 @@ class CommonDialog extends StatelessWidget {
       contentPadding:
           contentPadding ?? const EdgeInsets.fromLTRB(24, 16, 24, 0),
       actionsPadding: const EdgeInsets.fromLTRB(24, 16, 24, 20),
+      actionsAlignment: MainAxisAlignment.center,
       title: Row(
         children: [
           Container(

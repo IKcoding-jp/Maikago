@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:maikago/models/list.dart';
 import 'package:maikago/models/shop.dart';
 import 'package:maikago/screens/main/widgets/empty_state_guide.dart';
-import 'package:maikago/screens/main/widgets/empty_state_purchased_guide.dart';
 import 'package:maikago/widgets/list_edit.dart';
 
 /// メイン画面のアイテムリスト（未購入/購入済み左右分割）
@@ -51,6 +50,14 @@ class ItemListSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 両方とも空のときは左右一体ガイド（行単位で左右が揃う）を全幅表示
+    if (incItems.isEmpty && comItems.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.only(left: 8.0, right: 8.0, bottom: 8.0),
+        child: EmptyStateGuide(),
+      );
+    }
+
     return Padding(
       padding: const EdgeInsets.only(left: 8.0, right: 8.0, bottom: 8.0),
       child: Row(
@@ -141,9 +148,7 @@ class ItemListSection extends StatelessWidget {
           key: sectionKey,
           child: ClipRect(
             child: items.isEmpty
-                ? (isIncomplete
-                    ? const EmptyStateGuide()
-                    : const EmptyStatePurchasedGuide())
+                ? EmptyStateGuidePanel(isIncomplete: isIncomplete)
                 : ReorderableListView.builder(
                     padding: EdgeInsets.only(
                       left: 4,

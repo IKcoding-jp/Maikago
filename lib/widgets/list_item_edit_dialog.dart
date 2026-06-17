@@ -260,36 +260,35 @@ class _ListItemEditDialogState extends State<ListItemEditDialog> {
               ),
               const SizedBox(height: 16),
               // 合計金額表示
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .primary
-                      .withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '合計:',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
+              Column(
+                children: [
+                  Divider(color: Theme.of(context).dividerColor),
+                  Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '合計:',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                        ),
+                        Text(
+                          '¥${calcItemTotalRaw(price: _price, quantity: _quantity, discount: _discount)}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.onSurface,
+                            fontSize:
+                                Theme.of(context).textTheme.bodyLarge?.fontSize,
+                          ),
+                        ),
+                      ],
                     ),
-                    Text(
-                      '¥${calcItemTotalRaw(price: _price, quantity: _quantity, discount: _discount)}',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.primary,
-                        fontSize:
-                            Theme.of(context).textTheme.bodyLarge?.fontSize,
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ],
           ),

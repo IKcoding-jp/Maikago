@@ -147,32 +147,33 @@ class _ListEditState extends State<ListEdit> {
                                         Container(
                                           margin:
                                               const EdgeInsets.only(bottom: 4),
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 6, vertical: 2),
+                                          padding:
+                                              const EdgeInsets.only(bottom: 2),
                                           decoration: BoxDecoration(
-                                            color: colorScheme.secondary
-                                                .withValues(alpha: 0.2),
-                                            borderRadius:
-                                                BorderRadius.circular(4),
-                                            border: Border.all(
-                                                color: colorScheme.secondary,
-                                                width: 0.5),
+                                            border: Border(
+                                              bottom: BorderSide(
+                                                color: colorScheme.onSurface
+                                                    .withValues(alpha: 0.4),
+                                                width: 1,
+                                              ),
+                                            ),
                                           ),
                                           child: Text(
                                             (widget.item.recipeName != null &&
                                                     widget.item.recipeName!
                                                         .isNotEmpty)
                                                 ? widget.item.recipeName!
-                                                : 'レシピ由来',
+                                                : 'レシピから取り込み',
                                             style: TextStyle(
                                               fontSize: Theme.of(context)
                                                   .textTheme
                                                   .labelSmall
                                                   ?.fontSize,
-                                              color: colorScheme.primary,
-                                              fontWeight: FontWeight.bold,
+                                              color: colorScheme.onSurface
+                                                  .withValues(alpha: 0.5),
+                                              letterSpacing: 0.5,
                                             ),
-                                            maxLines: 1,
+                                            maxLines: 2,
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
