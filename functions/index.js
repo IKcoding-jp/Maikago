@@ -143,7 +143,7 @@ exports.analyzeImage = onCall(
           imageContext: { languageHints: ['ja', 'en'] }
         }),
         new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Vision APIタイムアウト')), 10000)
+          setTimeout(() => reject(new Error('Vision APIタイムアウト')), 12000)
         )
       ]);
 
