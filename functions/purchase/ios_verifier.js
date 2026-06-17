@@ -102,6 +102,11 @@ function fetchTransaction(transactionId, jwt) {
       });
     });
 
+    // Cloud Functions タイムアウト(30s)の 2/3 で打ち切り、
+    // クライアントへのエラー応答時間を確保する
+    req.setTimeout(20000, () => {
+      req.destroy(new Error('request_timeout'));
+    });
     req.on('error', reject);
     req.end();
   });
