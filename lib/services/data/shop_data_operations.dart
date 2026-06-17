@@ -141,79 +141,9 @@ mixin ShopDataOperations on DataServiceBase {
       final doc = await docRef.get();
 
       if (doc.exists) {
-        // 追加処理：このユーザーが削除したショップに関連する共有データを先に更新
         final user = auth.currentUser;
-        try {
-          final docData = doc.data();
-          if (user != null) {
-            // まず user shop ドキュメントに自動追加元の transmission ID があれば優先して処理
-            final receivedFromTransmission =
-                docData != null ? docData['receivedFromTransmission'] : null;
-            if (receivedFromTransmission != null) {
-              try {
-                final tRef = firestore
-                    .collection('transmissions')
-                    .doc(receivedFromTransmission.toString());
-                final tSnap = await tRef.get();
-                if (tSnap.exists) {
-                  final tData = tSnap.data()!;
-                  final sharedWith = List<String>.from(
-                    tData['sharedWith'] ?? [],
-                  );
-                  if (sharedWith.contains(user.uid)) {
-                    sharedWith.remove(user.uid);
-                    if (sharedWith.isEmpty) {
-                      await tRef.update({
-                        'isActive': false,
-                        'status': 'deleted',
-                        'deletedAt': DateTime.now().toIso8601String(),
-                      });
-                    } else {
-                      await tRef.update({'sharedWith': sharedWith});
-                    }
-                  }
-                }
-              } catch (e) {
-                DebugService().logError('共有データ更新エラー（transmission指定）: $e');
-              }
-            } else {
-              // fallback: contentId に紐づく transmissions を検索してバッチ更新
-              // セキュリティルール上、sharedWithに自分が含まれる条件が必要
-              final query = await firestore
-                  .collection('transmissions')
-                  .where('contentId', isEqualTo: shopId)
-                  .where('sharedWith', arrayContains: user.uid)
-                  .get();
 
-              final batch = firestore.batch();
-              bool hasBatchWrites = false;
-              for (final t in query.docs) {
-                final data = t.data();
-                final sharedWith = List<String>.from(data['sharedWith'] ?? []);
-                if (sharedWith.contains(user.uid)) {
-                  sharedWith.remove(user.uid);
-                  if (sharedWith.isEmpty) {
-                    batch.update(t.reference, {
-                      'isActive': false,
-                      'status': 'deleted',
-                      'deletedAt': DateTime.now().toIso8601String(),
-                    });
-                  } else {
-                    batch.update(t.reference, {'sharedWith': sharedWith});
-                  }
-                  hasBatchWrites = true;
-                }
-              }
-              if (hasBatchWrites) {
-                await batch.commit();
-              }
-            }
-          }
-        } catch (e) {
-          DebugService().logError('共有データ更新エラー（ショップ削除前）: $e');
-        }
-
-        // マーカーを追加して、自動追加ロジックによる復元を防止
+        // マーカーを追加して、ユーザーが明示的に削除したショップの自動復元を防止する。
         try {
           if (user != null) {
             await firestore.collection('users').doc(user.uid).update({
@@ -224,14 +154,8 @@ mixin ShopDataOperations on DataServiceBase {
           DebugService().logError('削除マーカー追加エラー: $e');
         }
 
-        // 共有データの更新後にユーザーのショップを削除
+        // ユーザーのショップを削除
         await docRef.delete();
-
-        // NOTE: 削除マーカーはユーザーが明示的に削除したことを示すため
-        // 自動復元を防止する目的で残す（以前はここでマーカーを削除していたが、それにより
-        // リアルタイムの再追加が発生してしまっていたため保持するように変更）。
-      } else {
-        // ドキュメントが存在しない場合は成功として扱う
       }
     } catch (e) {
       rethrow;

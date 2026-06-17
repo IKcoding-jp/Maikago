@@ -57,21 +57,6 @@ class CloudFunctionsService {
     }
   }
 
-  /// データ同期用のCloud Functionsを呼び出す
-  Future<Map<String, dynamic>> syncData(Map<String, dynamic> syncData) async {
-    try {
-      final result = await callFunction('syncData', {
-        'syncData': syncData,
-        'timestamp': DateTime.now().toIso8601String(),
-      });
-
-      return result as Map<String, dynamic>;
-    } catch (e) {
-      DebugService().logError('データ同期エラー: $e');
-      rethrow;
-    }
-  }
-
   /// エラーハンドリング用のヘルパーメソッド
   String getErrorMessage(dynamic error) {
     if (error is FirebaseFunctionsException) {
