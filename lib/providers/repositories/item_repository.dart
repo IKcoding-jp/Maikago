@@ -369,45 +369,70 @@ class ItemRepository {
     if (!_cacheManager.isLocalMode) {
       // リアルタイム同期による中間状態の上書きを防止
       _state.isBatchUpdating = true;
+      // 削除に失敗したIDと、最後に発生した例外を記録する。
+      // Future.wait は最初の失敗で例外を投げるが、残りの削除はFirestore側で
+      // 成功してしまう。全件ロールバックすると「成功して消えた分」までローカルに
+      // 復活し不整合になるため、失敗したIDのみを個別に捕捉して戻す。
+      final failedIds = <String>[];
+      Object? lastError;
       try {
-        // 並列で削除を実行（最大5つずつ）
+        // 並列で削除を実行（最大5つずつ）。各削除の成功/失敗を個別に判定する。
         for (int i = 0; i < itemIds.length; i += _batchSize) {
           final batch = itemIds.skip(i).take(_batchSize).toList();
-          await Future.wait(
-            batch.map(
-              (itemId) => _dataService.deleteItem(
-                itemId,
-                isAnonymous: _state.shouldUseAnonymousSession,
-              ),
-            ),
+          final results = await Future.wait(
+            batch.map((itemId) async {
+              try {
+                await _dataService.deleteItem(
+                  itemId,
+                  isAnonymous: _state.shouldUseAnonymousSession,
+                );
+                return null; // 成功
+              } catch (e) {
+                DebugService().logError('Firebase削除エラー (id=$itemId): $e');
+                lastError = e;
+                return itemId; // 失敗したID
+              }
+            }),
+          );
+          failedIds.addAll(results.whereType<String>());
+        }
+
+        if (failedIds.isEmpty) {
+          _state.isSynced = true;
+        } else {
+          _state.isSynced = false;
+
+          // 失敗したIDのみロールバック（成功分はキャッシュからも削除を確定）
+          final failedItems = itemsToDelete
+              .where((item) => failedIds.contains(item.id))
+              .toList();
+          _cacheManager.items.addAll(failedItems);
+
+          // 各アイテムを自分のshopIdのショップにのみ復元する
+          for (int i = 0; i < _cacheManager.shops.length; i++) {
+            final shop = _cacheManager.shops[i];
+            final restoreTargets =
+                failedItems.where((item) => item.shopId == shop.id);
+            if (restoreTargets.isEmpty) continue;
+
+            final updatedItems = List<ListItem>.from(shop.items);
+            for (final item in restoreTargets) {
+              if (!updatedItems.any(
+                (existingItem) => existingItem.id == item.id,
+              )) {
+                updatedItems.add(item);
+              }
+            }
+            _cacheManager.shops[i] = shop.copyWith(items: updatedItems);
+          }
+
+          _state.notifyListeners();
+
+          throw convertToAppException(
+            lastError ?? Exception('一括削除に失敗しました'),
+            contextMessage: 'アイテムの削除',
           );
         }
-
-        _state.isSynced = true;
-      } catch (e) {
-        _state.isSynced = false;
-        DebugService().logError('Firebase一括削除エラー: $e');
-
-        // エラーが発生した場合は削除を取り消し
-        _cacheManager.items.addAll(itemsToDelete);
-
-        // ショップにも復元
-        for (int i = 0; i < _cacheManager.shops.length; i++) {
-          final shop = _cacheManager.shops[i];
-          final updatedItems = List<ListItem>.from(shop.items);
-          for (final item in itemsToDelete) {
-            if (!updatedItems.any(
-              (existingItem) => existingItem.id == item.id,
-            )) {
-              updatedItems.add(item);
-            }
-          }
-          _cacheManager.shops[i] = shop.copyWith(items: updatedItems);
-        }
-
-        _state.notifyListeners();
-
-        throw convertToAppException(e, contextMessage: 'アイテムの削除');
       } finally {
         _state.isBatchUpdating = false;
         _state.notifyListeners();

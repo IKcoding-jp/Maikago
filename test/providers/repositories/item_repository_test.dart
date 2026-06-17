@@ -740,5 +740,73 @@ void main() {
       // finallyでisBatchUpdatingがfalseに戻る
       expect(state.isBatchUpdating, false);
     });
+
+    test('一括削除の部分失敗時は失敗したIDのみロールバックされる', () async {
+      cacheManager.setLocalMode(false);
+      final items = createSampleItems(3, shopId: '0');
+      for (final item in items) {
+        cacheManager.addItemToCache(item);
+      }
+      final shop = createSampleShop(id: '0', name: 'デフォルト', items: items);
+      cacheManager.addShopToCache(shop);
+
+      // item_1 の削除だけ失敗、item_0 と item_2 は成功させる
+      when(mockDataService.deleteItem(
+        'item_1',
+        isAnonymous: anyNamed('isAnonymous'),
+      )).thenThrow(Exception('Firebase error'));
+      when(mockDataService.deleteItem(
+        'item_0',
+        isAnonymous: anyNamed('isAnonymous'),
+      )).thenAnswer((_) async {});
+      when(mockDataService.deleteItem(
+        'item_2',
+        isAnonymous: anyNamed('isAnonymous'),
+      )).thenAnswer((_) async {});
+
+      final idsToDelete = items.map((item) => item.id).toList();
+
+      try {
+        await repository.deleteItems(idsToDelete);
+      } catch (_) {}
+
+      // 失敗した item_1 のみキャッシュに復活、成功分は削除確定
+      expect(cacheManager.items.map((e) => e.id).toList(), ['item_1']);
+      // ショップ側も item_1 のみ復元され、Firestoreと整合する
+      expect(
+        cacheManager.shops.first.items.map((e) => e.id).toList(),
+        ['item_1'],
+      );
+      // 同期失敗状態になる
+      expect(state.isSynced, false);
+    });
+
+    test('一括削除の復元は正しいshopIdのショップにのみ行われる', () async {
+      cacheManager.setLocalMode(false);
+      final itemA = createSampleItem(id: 'a', name: 'A', shopId: '0');
+      final itemB = createSampleItem(id: 'b', name: 'B', shopId: '1');
+      cacheManager.addItemToCache(itemA);
+      cacheManager.addItemToCache(itemB);
+      cacheManager.addShopToCache(
+          createSampleShop(id: '0', name: 'ショップ0', items: [itemA]));
+      cacheManager.addShopToCache(
+          createSampleShop(id: '1', name: 'ショップ1', items: [itemB]));
+
+      // 両方の削除が失敗
+      when(mockDataService.deleteItem(
+        any,
+        isAnonymous: anyNamed('isAnonymous'),
+      )).thenThrow(Exception('Firebase error'));
+
+      try {
+        await repository.deleteItems(['a', 'b']);
+      } catch (_) {}
+
+      // 各アイテムは自分のショップにのみ復元される（他ショップへ混入しない）
+      final shop0 = cacheManager.shops.firstWhere((s) => s.id == '0');
+      final shop1 = cacheManager.shops.firstWhere((s) => s.id == '1');
+      expect(shop0.items.map((e) => e.id).toList(), ['a']);
+      expect(shop1.items.map((e) => e.id).toList(), ['b']);
+    });
   });
 }

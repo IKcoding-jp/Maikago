@@ -68,8 +68,8 @@ class ItemOperations {
             shopIndex, currentShop.copyWith(items: revertedItems));
       }
 
-      if (!context.mounted) return;
-      showErrorSnackBar(context, e);
+      // 画面遷移後でも通知できるようグローバルMessenger経由で表示する
+      showGlobalErrorSnackBar(e);
     }
   }
 
@@ -83,8 +83,8 @@ class ItemOperations {
       await context.read<DataProvider>().deleteItem(item.id);
       if (onSuccess != null) await onSuccess();
     } catch (e) {
-      if (!context.mounted) return;
-      showErrorSnackBar(context, e);
+      // 削除直後に画面遷移してもエラーを通知できるようグローバル表示
+      showGlobalErrorSnackBar(e);
     }
   }
 
@@ -96,8 +96,8 @@ class ItemOperations {
     try {
       await context.read<DataProvider>().updateItem(updatedItem);
     } catch (e) {
-      if (!context.mounted) return;
-      showErrorSnackBar(context, e);
+      // 更新直後に画面遷移してもエラーを通知できるようグローバル表示
+      showGlobalErrorSnackBar(e);
     }
   }
 

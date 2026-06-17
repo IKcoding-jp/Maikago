@@ -19,6 +19,7 @@ import 'package:maikago/router.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:maikago/env.dart';
 import 'package:maikago/firebase_options.dart';
+import 'package:maikago/utils/snackbar_utils.dart';
 
 void main() async {
   unawaited(runZonedGuarded(
@@ -169,6 +170,7 @@ class _MyAppState extends State<MyApp> {
           return MaterialApp.router(
             title: 'まいカゴ',
             theme: themeProvider.themeData,
+            scaffoldMessengerKey: rootScaffoldMessengerKey,
             routerConfig: _router,
             builder: (context, child) {
               // Webプラットフォームの場合、横幅の最大制限を設定
