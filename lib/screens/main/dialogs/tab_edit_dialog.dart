@@ -59,7 +59,7 @@ class _TabEditDialogState extends State<TabEditDialog> {
     _buildShareOptions();
   }
 
-  /// 共有選択肢を構築（共有タブは1つの単位として表示）
+  /// 同期選択肢を構築（同期タブは1つの単位として表示）
   late List<_ShareOption> _shareOptions;
 
   void _buildShareOptions() {
@@ -70,10 +70,10 @@ class _TabEditDialogState extends State<TabEditDialog> {
     for (final shop in otherShops) {
       if (shop.sharedTabGroupId != null &&
           shop.sharedTabGroupId != currentGroupId) {
-        // 自分のグループ以外の共有タブ → グループ単位で表示
+        // 自分のグループ以外の同期タブ → グループ単位で表示
         externalGroups.putIfAbsent(shop.sharedTabGroupId!, () => []).add(shop);
       } else {
-        // 未共有タブ or 自分のグループのメンバー → 個別表示
+        // 未同期タブ or 自分のグループのメンバー → 個別表示
         individualShops.add(shop);
       }
     }
@@ -174,7 +174,7 @@ class _TabEditDialogState extends State<TabEditDialog> {
               const SizedBox(height: 16),
               if (otherShops.isNotEmpty) ...[
                 Text(
-                  '共有するタブを選択',
+                  '同期するタブを選択',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -187,7 +187,7 @@ class _TabEditDialogState extends State<TabEditDialog> {
                     title: Text(option.label),
                     subtitle: option.isGroup
                         ? Text(
-                            '共有タブ',
+                            '同期タブ',
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.colorScheme.onSurface
                                   .withValues(alpha: 0.6),
@@ -212,7 +212,7 @@ class _TabEditDialogState extends State<TabEditDialog> {
                   Padding(
                     padding: const EdgeInsets.only(top: 8),
                     child: Text(
-                      '共有したいタブを選択すると共有が有効になります。',
+                      '同期したいタブを選択すると同期が有効になります。',
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.hintColor,
                       ),
@@ -222,7 +222,7 @@ class _TabEditDialogState extends State<TabEditDialog> {
               if (otherShops.isEmpty) ...[
                 const SizedBox(height: 16),
                 Text(
-                  '共有できる他のタブがありません。',
+                  '同期できる他のタブがありません。',
                   style: theme.textTheme.bodyMedium,
                 ),
               ],
@@ -241,7 +241,7 @@ class _TabEditDialogState extends State<TabEditDialog> {
   }
 }
 
-/// 共有選択肢（個別タブまたはグループ単位）
+/// 同期選択肢（個別タブまたはグループ単位）
 class _ShareOption {
   const _ShareOption({
     required this.label,

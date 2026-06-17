@@ -1,4 +1,4 @@
-// 共有タブのCRUD、合計・予算計算
+// 同期タブのCRUD、合計・予算計算
 import 'package:maikago/services/data_service.dart';
 import 'package:maikago/models/shop.dart';
 import 'package:maikago/providers/data_provider_state.dart';
@@ -7,13 +7,13 @@ import 'package:maikago/providers/repositories/shop_repository.dart';
 import 'package:maikago/services/debug_service.dart';
 import 'package:maikago/utils/calculation_utils.dart';
 
-/// 共有タブの管理を担うクラス。
-/// - 共有タブの作成・更新・削除
-/// - 共有タブ間の参照管理
+/// 同期タブの管理を担うクラス。
+/// - 同期タブの作成・更新・削除
+/// - 同期タブ間の参照管理
 /// - 合計・予算の計算
 /// - Firestore保存
-class SharedTabManager {
-  SharedTabManager({
+class SyncTabManager {
+  SyncTabManager({
     required DataService dataService,
     required DataCacheManager cacheManager,
     required ShopRepository shopRepository,
@@ -54,7 +54,7 @@ class SharedTabManager {
     return null;
   }
 
-  // --- 共有タブ管理 ---
+  // --- 同期タブ管理 ---
 
   Future<void> updateSharedTab(String shopId, List<String> selectedTabIds,
       {String? name, String? sharedTabGroupIcon}) async {
@@ -117,7 +117,7 @@ class SharedTabManager {
       }
     }
 
-    // 共有タブの全メンバーID（自身 + 選択タブ）
+    // 同期タブの全メンバーID（自身 + 選択タブ）
     final allGroupMemberIds = {shopId, ...selectedTabIds};
 
     // 選択されたタブのsharedTabsを正確なグループメンバーに置換
@@ -156,10 +156,10 @@ class SharedTabManager {
         );
 
         _state.isSynced = true;
-        DebugService().logInfo('共有タブ更新完了: ショップID=$shopId');
+        DebugService().logInfo('同期タブ更新完了: ショップID=$shopId');
       } catch (e) {
         _state.isSynced = false;
-        DebugService().logError('共有タブ更新エラー: $e');
+        DebugService().logError('同期タブ更新エラー: $e');
         // Issue #159: 途中失敗時は全ショップを更新前へ巻き戻す
         _rollback(originalById, involvedIds);
         _state.notifyListeners();
@@ -235,10 +235,10 @@ class SharedTabManager {
         );
 
         _state.isSynced = true;
-        DebugService().logInfo('共有タブから離脱完了: ショップID=$shopId');
+        DebugService().logInfo('同期タブから離脱完了: ショップID=$shopId');
       } catch (e) {
         _state.isSynced = false;
-        DebugService().logError('共有タブ削除エラー: $e');
+        DebugService().logError('同期タブ削除エラー: $e');
         // Issue #159: 途中失敗時は全ショップを更新前へ巻き戻す
         _rollback(originalById, involvedIds);
         _state.notifyListeners();
@@ -281,7 +281,7 @@ class SharedTabManager {
         _state.isSynced = true;
       } catch (e) {
         _state.isSynced = false;
-        DebugService().logError('共有タブ予算同期エラー: $e');
+        DebugService().logError('同期タブ予算同期エラー: $e');
         // Issue #159: 途中失敗時は全ショップを更新前へ巻き戻す
         _rollback(originalById, involvedIds);
         _state.notifyListeners();

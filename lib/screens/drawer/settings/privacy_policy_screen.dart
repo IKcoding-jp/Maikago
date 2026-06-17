@@ -226,8 +226,7 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
               content: '本アプリでは、サブスクリプションサービスの提供にあたり、以下の情報を収集する場合があります。\n\n'
                   '• サブスクリプション状態（有効期間、プラン種類等）\n'
                   '• 決済情報（プラットフォーム経由で処理され、当社では直接収集しません）\n'
-                  '• 利用状況データ（機能の使用頻度等）\n'
-                  '• 家族共有メンバー情報（ファミリープランの場合）',
+                  '• 利用状況データ（機能の使用頻度等）',
               settingsState: settingsState,
             ),
             const SizedBox(height: 20),

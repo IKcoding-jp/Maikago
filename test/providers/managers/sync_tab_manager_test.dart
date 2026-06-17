@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maikago/models/shop.dart';
-import 'package:maikago/providers/managers/shared_tab_manager.dart';
+import 'package:maikago/providers/managers/sync_tab_manager.dart';
 import 'package:maikago/providers/managers/data_cache_manager.dart';
 import 'package:maikago/providers/data_provider_state.dart';
 import 'package:maikago/providers/repositories/shop_repository.dart';
@@ -81,7 +81,7 @@ class FakeDataService implements DataService {
 }
 
 void main() {
-  late SharedTabManager manager;
+  late SyncTabManager manager;
   late FakeDataCacheManager cacheManager;
   late FakeShopRepository shopRepository;
   late FakeDataProviderState state;
@@ -92,7 +92,7 @@ void main() {
     shopRepository = FakeShopRepository();
     state = FakeDataProviderState();
     dataService = FakeDataService();
-    manager = SharedTabManager(
+    manager = SyncTabManager(
       dataService: dataService,
       cacheManager: cacheManager,
       shopRepository: shopRepository,
@@ -513,7 +513,7 @@ void main() {
     });
   });
 
-  // Issue #159: 共有タブのグループ更新を WriteBatch で原子化し、
+  // Issue #159: 同期タブのグループ更新を WriteBatch で原子化し、
   // 途中失敗時はローカルキャッシュを更新前に巻き戻す
   group('updateSharedTab - 原子性とロールバック（Issue #159）', () {
     setUp(() {

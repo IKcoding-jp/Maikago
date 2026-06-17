@@ -81,8 +81,8 @@ class BottomSummaryDetails extends StatelessWidget {
       children: [
         Text(
           budget != null
-              ? (isSharedMode ? '共有残り予算' : '残り予算')
-              : (isSharedMode ? '共有予算' : '予算'),
+              ? (isSharedMode ? '同期残り予算' : '残り予算')
+              : (isSharedMode ? '同期予算' : '予算'),
           style: theme.textTheme.bodyMedium?.copyWith(
             color: theme.subtextColor,
             fontWeight: FontWeight.w500,
@@ -124,7 +124,7 @@ class BottomSummaryDetails extends StatelessWidget {
     );
   }
 
-  /// 共有モードの合計表示
+  /// 同期モードの合計表示
   Widget _buildSharedModeTotalDisplay(
       ThemeData theme, ColorScheme colorScheme) {
     return Column(
@@ -153,12 +153,12 @@ class BottomSummaryDetails extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 8),
-        // 2行目: 共有タブ全体の合計
+        // 2行目: 同期タブ全体の合計
         Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             Text(
-              '共有合計',
+              '同期合計',
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.subtextColor,
                 fontWeight: FontWeight.w500,

@@ -56,7 +56,7 @@ class ReleaseHistory {
           category: ChangeCategory.improvement,
         ),
         const ChangeItem(
-          description: '共有タブが起動時に重複して表示されるバグを修正しました。',
+          description: '同期タブが起動時に重複して表示されるバグを修正しました。',
           category: ChangeCategory.bugFix,
         ),
         const ChangeItem(
@@ -170,7 +170,7 @@ class ReleaseHistory {
           category: ChangeCategory.bugFix,
         ),
         const ChangeItem(
-          description: '共有タブの合計金額が正しく更新されない問題を修正しました。',
+          description: '同期タブの合計金額が正しく更新されない問題を修正しました。',
           category: ChangeCategory.bugFix,
         ),
         const ChangeItem(
@@ -200,7 +200,7 @@ class ReleaseHistory {
           category: ChangeCategory.improvement,
         ),
         const ChangeItem(
-          description: '共有タブのデザインを見やすくグループ化しました。',
+          description: '同期タブのデザインを見やすくグループ化しました。',
           category: ChangeCategory.improvement,
         ),
         const ChangeItem(
@@ -258,15 +258,15 @@ class ReleaseHistory {
           category: ChangeCategory.improvement,
         ),
         const ChangeItem(
-          description: 'タブを共有する際、アイコンを設定し、共有タブを区別しやすい機能を追加。',
+          description: 'タブを同期する際、アイコンを設定し、同期タブを区別しやすい機能を追加。',
           category: ChangeCategory.newFeature,
         ),
         const ChangeItem(
-          description: '共有タブのマークをテーマにあった色になるように修正。',
+          description: '同期タブのマークをテーマにあった色になるように修正。',
           category: ChangeCategory.improvement,
         ),
         const ChangeItem(
-          description: '共有タブで現在のタブの合計金額と共有グループ全体の合計金額の両方を表示するように改善。',
+          description: '同期タブで現在のタブの合計金額と同期グループ全体の合計金額の両方を表示するように改善。',
           category: ChangeCategory.improvement,
         ),
       ],

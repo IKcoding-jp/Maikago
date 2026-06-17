@@ -115,7 +115,7 @@ class _BottomSummaryWidgetState extends State<BottomSummaryWidget> {
       _lastItemsHash = currentItemsHash;
       _refreshData();
     } else if (sharedTabGroupIdChanged || itemsChanged || budgetChanged) {
-      // 同じタブ内でのアイテム変更、共有タブ変更、または予算変更時
+      // 同じタブ内でのアイテム変更、同期タブ変更、または予算変更時
       _lastItemsHash = currentItemsHash;
       _refreshData();
     }
@@ -147,7 +147,7 @@ class _BottomSummaryWidgetState extends State<BottomSummaryWidget> {
   // 全てのサマリーデータを一度に取得
   Future<Map<String, dynamic>> _getAllSummaryData() async {
     try {
-      // 共有タブモードの場合
+      // 同期タブモードの場合
       if (widget.shop.sharedTabGroupId != null) {
         final dataProvider = context.read<DataProvider>();
         final sharedTotal =
@@ -188,7 +188,7 @@ class _BottomSummaryWidgetState extends State<BottomSummaryWidget> {
 
   @override
   Widget build(BuildContext context) {
-    // 即座の計算値を使用（共有モード時は現在のタブのみ計算）
+    // 即座の計算値を使用（同期モード時は現在のタブのみ計算）
     final instantTotal = _calculateCurrentShopTotal();
 
     // キャッシュが初期化されていて、現在のショップに対応するキャッシュの場合はキャッシュを使用
