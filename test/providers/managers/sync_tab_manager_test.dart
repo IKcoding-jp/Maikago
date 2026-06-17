@@ -164,6 +164,36 @@ void main() {
       // 単価で丸める旧実装なら (101*0.5).round()=51 → ×3 = 153 とズレていた
       expect(manager.getDisplayTotal(shop), 152);
     });
+
+    test('discount=0.0（割引なし）は価格×個数のまま', () {
+      final shop = createSampleShop(items: [
+        createSampleItem(
+            price: 999, quantity: 3, discount: 0.0, isChecked: true),
+      ]);
+
+      // 999 * 3 * 1.0 = 2997
+      expect(manager.getDisplayTotal(shop), 2997);
+    });
+
+    test('discount=1.0（100%割引）は0になる', () {
+      final shop = createSampleShop(items: [
+        createSampleItem(
+            price: 500, quantity: 2, discount: 1.0, isChecked: true),
+      ]);
+
+      // 500 * 2 * 0.0 = 0
+      expect(manager.getDisplayTotal(shop), 0);
+    });
+
+    test('大きな金額でもオーバーフローしない', () {
+      final shop = createSampleShop(items: [
+        createSampleItem(
+            price: 9999999, quantity: 99, discount: 0.0, isChecked: true),
+      ]);
+
+      // 9999999 * 99 = 989999901（intの範囲内）
+      expect(manager.getDisplayTotal(shop), 989999901);
+    });
   });
 
   group('getSharedTabTotal', () {
