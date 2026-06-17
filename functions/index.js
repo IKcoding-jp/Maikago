@@ -9,6 +9,8 @@ const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 const vision = require('@google-cloud/vision');
 const openai = require('openai');
+// ファミリーの非正規化フィールド memberIds の計算（純粋関数・Issue #198）
+const { computeMemberIds, memberIdsEqual } = require('./familyMemberIds');
 
 admin.initializeApp();
 
@@ -273,8 +275,8 @@ exports.applyFamilyPlanToGroup = onDocumentCreated(
     // Issue #162: Firestoreルールの人数無制限メンバー判定（isFamilyMember）のため、
     // UID文字列の配列 memberIds をファミリードキュメントに付与する。
     // これにより11人目以降のメンバーも共有データを読めるようになる。
-    // 壊れた1件（null要素・id欠如）で関数全体が落ちないよう、要素単位で防御する。
-    const memberIds = members.filter((m) => m && m.id).map((m) => m.id);
+    // 壊れた1件（null要素・id欠如）で関数全体が落ちないよう、computeMemberIds が要素単位で防御する。
+    const memberIds = computeMemberIds(members);
     const batch = admin.firestore().batch();
 
     try {
@@ -301,6 +303,37 @@ exports.applyFamilyPlanToGroup = onDocumentCreated(
       return null;
     } catch (e) {
       logger.error('applyFamilyPlanToGroup error:', e);
+      return null;
+    }
+  }
+);
+
+// Issue #198 F-1: members が変わったら memberIds を権威的に再計算して同期する。
+// 非正規化フィールド memberIds が members とズレると、削除されたメンバーが memberIds 経由で
+// read/update を継続できてしまう（stale 権限）。ルールの memberIdsConsistent はサイズ整合を
+// 即時に強制するが、内容のズレ（誤った id 除去など）はこのトリガがサーバー権威で是正する。
+// ループ防止: 再計算結果が現状と同一なら何も書かない（書き戻しが再びこのトリガを起動するため）。
+exports.syncFamilyMemberIds = onDocumentUpdated(
+  'families/{familyId}',
+  async (event) => {
+    const after = event.data?.after?.data();
+    if (!after) return null;
+
+    const recomputed = computeMemberIds(after.members);
+    const current = Array.isArray(after.memberIds) ? after.memberIds : [];
+
+    // 変化なし → 書き戻さない（無限ループ防止）
+    if (memberIdsEqual(current, recomputed)) return null;
+
+    try {
+      await event.data.after.ref.set({ memberIds: recomputed }, { merge: true });
+      logger.info('syncFamilyMemberIds: recomputed memberIds', {
+        familyId: event.params.familyId,
+        size: recomputed.length,
+      });
+      return null;
+    } catch (e) {
+      logger.error('syncFamilyMemberIds error:', e);
       return null;
     }
   }

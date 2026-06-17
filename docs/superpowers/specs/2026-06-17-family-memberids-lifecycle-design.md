@@ -95,6 +95,7 @@ allow update: if auth != null &&
 1. **branch 1 の広い信頼モデル**: 既存メンバーは現状も全フィールド更新可（`ownerId` 書き換え・他メンバー削除も可）。F-1/F-5/F-2 の対象外。将来 add/remove 権限を整理する際に最小権限化を検討。
 2. **add-self の招待未検証**: add-self ルール自体は `familyInvites` の承認を検証しない（familyId を知れば誰でも参加可）。既存の潜在ギャップで本Issue対象外。
 3. **subscription の参加/脱退追従**: メンバー増減時の各メンバー `subscription/current.familyMembers` 同期は将来クライアント実装時に対応。
+4. **add-self の members 内容と本人idの束縛**: `isJoiningSelf` は memberIds に本人を1件追加することは強制するが、`members` 配列に入れる member オブジェクトの id までは検証しない（ルールで配列内 map の id を照合できない＝10人ハードコードの根本原因と同じ制約）。CF が members→memberIds を再計算するため、本人と違う id を members に入れると最終 memberIds がそちらに寄る。ただし攻撃者は自分のアクセス権を増やせず（自分は最終 memberIds から外れる）、通常の self-join 以上の能力は得られないため権限昇格にはならない。データ整合性のフォローアップとして記録。
 
 ## 影響範囲・リスク
 
