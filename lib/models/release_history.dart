@@ -40,6 +40,60 @@ class ReleaseHistory {
   /// 更新履歴の静的データ（新しいバージョンを先頭に追加）
   static final List<ReleaseNote> _releaseNotes = [
     ReleaseNote(
+      version: '1.6.0',
+      releaseDate: DateTime(2026, 6, 18),
+      changes: [
+        const ChangeItem(
+          description: 'ホーム画面・レシピ画面・各ダイアログのデザインを改善しました。',
+          category: ChangeCategory.improvement,
+        ),
+        const ChangeItem(
+          description: '「共有タブ」の名称を「同期タブ」に変更しました。',
+          category: ChangeCategory.improvement,
+        ),
+        const ChangeItem(
+          description: 'アイテムを編集して保存した際、自動で購入済みにならないことがある問題を修正しました。',
+          category: ChangeCategory.bugFix,
+        ),
+        const ChangeItem(
+          description: 'アプリ起動時にタブの表示が乱れることがある問題を修正しました。',
+          category: ChangeCategory.bugFix,
+        ),
+        const ChangeItem(
+          description: '設定変更後に取り消し線の表示が即座に反映されないことがある問題を修正しました。',
+          category: ChangeCategory.bugFix,
+        ),
+        const ChangeItem(
+          description: 'レシート読み取り（OCR）がタイムアウトしやすかった問題を修正しました。',
+          category: ChangeCategory.bugFix,
+        ),
+        const ChangeItem(
+          description: 'OCRの使用回数が、保存に失敗した場合でも消費されていた問題を修正しました。',
+          category: ChangeCategory.bugFix,
+        ),
+        const ChangeItem(
+          description: '同期タブで複数人が同時編集した際に、変更が巻き戻ることがある問題を修正しました。',
+          category: ChangeCategory.bugFix,
+        ),
+        const ChangeItem(
+          description: 'ゲストデータをアカウントに移行する際、データが消えるリスクを改善しました。',
+          category: ChangeCategory.bugFix,
+        ),
+        const ChangeItem(
+          description: '課金レシートをサーバー側でも検証し、不正利用を防止しました。',
+          category: ChangeCategory.improvement,
+        ),
+        const ChangeItem(
+          description: 'データ読み込みエラーが他のリストや項目に影響しないよう安定性を向上しました。',
+          category: ChangeCategory.improvement,
+        ),
+        const ChangeItem(
+          description: '書き込み失敗時に通知が表示されるよう改善しました。',
+          category: ChangeCategory.improvement,
+        ),
+      ],
+    ),
+    ReleaseNote(
       version: '1.5.1',
       releaseDate: DateTime(2026, 3, 15),
       changes: [
