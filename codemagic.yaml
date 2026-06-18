@@ -63,7 +63,8 @@ workflows:
           flutter build ipa --release \
             --build-name=$VERSION \
             --build-number=$BUILD_NUMBER \
-            --export-options-plist=/Users/builder/export_options.plist
+            --export-options-plist=/Users/builder/export_options.plist \
+            --dart-define=ADMOB_BANNER_AD_UNIT_ID=$ADMOB_BANNER_AD_UNIT_ID
 
     artifacts:
       - build/ios/ipa/*.ipa
@@ -131,7 +132,8 @@ workflows:
           echo "Building version $VERSION+$BUILD_NUMBER"
           flutter build appbundle --release \
             --build-name=$VERSION \
-            --build-number=$BUILD_NUMBER
+            --build-number=$BUILD_NUMBER \
+            --dart-define=ADMOB_BANNER_AD_UNIT_ID=$ADMOB_BANNER_AD_UNIT_ID
 
     artifacts:
       - build/**/outputs/**/*.aab
