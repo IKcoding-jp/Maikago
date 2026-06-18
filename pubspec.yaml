@@ -1,7 +1,7 @@
 name: maikago
 description: "まいカゴ – 買いすぎ防止のための買い物リスト管理アプリ"
 publish_to: 'none'
-version: 1.6.0+62
+version: 1.6.1+63
 environment:
   sdk: '>=3.0.0 <4.0.0'
 
