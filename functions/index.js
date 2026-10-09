@@ -9,7 +9,6 @@ const { verifyAndroidPurchase } = require('./purchase/android_verifier');
 const {
   createAndroidPublisherDeps,
 } = require('./purchase/android_publisher_client');
-const { verifyIosPurchase } = require('./purchase/ios_verifier');
 
 admin.initializeApp();
 
@@ -28,12 +27,6 @@ const openaiApiKey = defineSecret('OPENAI_API_KEY');
 // Google Play Developer API 用サービスアカウント鍵（JSON文字列）。
 // 購入レシート検証（Issue #163）で使用。Secret Manager で管理。
 const googlePlayServiceAccount = defineSecret('GOOGLE_PLAY_SERVICE_ACCOUNT_JSON');
-
-// App Store Server API 用認証情報（Issue #204）。Secret Manager で管理。
-// 取得方法: App Store Connect → ユーザーとアクセス → キー → App Store Connect API
-const appStoreKeyId = defineSecret('APP_STORE_KEY_ID');
-const appStoreIssuerId = defineSecret('APP_STORE_ISSUER_ID');
-const appStorePrivateKey = defineSecret('APP_STORE_PRIVATE_KEY');
 
 // Android 購入検証用クライアントを遅延初期化
 let _androidPurchaseDeps = null;
@@ -525,7 +518,7 @@ exports.verifyPurchase = onCall(
   {
     memory: '256MiB',
     timeoutSeconds: 30,
-    secrets: [googlePlayServiceAccount, appStoreKeyId, appStoreIssuerId, appStorePrivateKey],
+    secrets: [googlePlayServiceAccount],
   },
   async (request) => {
     // 認証チェック
@@ -545,62 +538,6 @@ exports.verifyPurchase = onCall(
     }
 
     const uid = request.auth.uid;
-
-    // iOS: App Store Server API で検証（Issue #204）
-    if (platform === 'ios') {
-      let iosResult;
-      try {
-        iosResult = await verifyIosPurchase(
-          { productId, purchaseToken },
-          {
-            keyId: appStoreKeyId.value(),
-            issuerId: appStoreIssuerId.value(),
-            privateKey: appStorePrivateKey.value(),
-          }
-        );
-      } catch (error) {
-        logger.error('iOS購入検証で予期せぬエラー', { uid, error: error.message });
-        throw new HttpsError('internal', '購入検証に失敗しました');
-      }
-
-      if (!iosResult.valid) {
-        logger.warn('iOS購入検証に失敗（プレミアム付与せず）', {
-          uid, productId, reason: iosResult.reason,
-        });
-        if (iosResult.reason === 'api_error') {
-          throw new HttpsError(
-            'unavailable',
-            '検証サーバーに接続できませんでした。時間をおいて再試行してください'
-          );
-        }
-        throw new HttpsError('permission-denied', '購入を検証できませんでした');
-      }
-
-      await admin
-        .firestore()
-        .collection('users')
-        .doc(uid)
-        .collection('purchases')
-        .doc('premium_entitlement')
-        .set(
-          {
-            isPremium: true,
-            productId,
-            platform: 'ios',
-            originalTransactionId: iosResult.originalTransactionId || null,
-            verifiedAt: admin.firestore.FieldValue.serverTimestamp(),
-          },
-          { merge: true }
-        );
-
-      logger.info('iOS購入検証成功・エンタイトルメント付与', {
-        uid,
-        productId,
-        originalTransactionId: iosResult.originalTransactionId,
-      });
-
-      return { verified: true };
-    }
 
     if (platform !== 'android') {
       throw new HttpsError(
